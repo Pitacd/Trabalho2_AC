@@ -155,15 +155,16 @@ MenuInicial:
     MOV R2, MaquinaMadeira;
     CALL MostraDisplay;
     CALL LimpaPerifericos;
+LeOInical:    
     MOV R0, Opcao;
-    MOV R1, [R0];
-LeOInical:
+    MOVB R1, [R0];
     CMP R1, 0;
     JEQ LeOInical;
     CMP R1, 1;
     JEQ MenuProdCategoria;
     ;CMP R1,2;
     ;JEQ StockAutenticacao;
+    CALL RotinaErro;
     JMP MenuInicial;
 
 ;---------------------------------
@@ -182,7 +183,9 @@ LeOpProdutos:
     JEQ MenuBebidas;
     CMP R1, OSnacks;
     JEQ MenuSnacks;
-    CAll RotinaErro;
+    CMP R1, OCancelar;
+    JEQ MenuInicial;
+    CALL RotinaErro;
     JMP MenuProdCategoria;
 
 ;------------------------------
@@ -194,7 +197,7 @@ MenuBebidas:
     CALL LimpaPerifericos;
     MOV R0, Opcao;
     MOV R3, ListaBebidas;
-    MOV R1, [R0];
+    MOVB R1, [R0];
     MOV R2, 1;
     CMP R1, R2; R1==1
     JEQ IrPagamento;
@@ -218,7 +221,7 @@ MenuSnacks:
     CALL LimpaPerifericos;
     MOV R0, Opcao;
     MOV R3, ListaSnacks;
-    MOV R1, [R0];
+    MOVB R1, [R0];
     MOV R2, 1;
     CMP R1, R2; R1==1
     JEQ IrPagamento;
@@ -278,7 +281,7 @@ Ciclo:
     ADD R0, 2;
     ADD R2, 2;
     CMP R0, R1;
-    JLE Ciclo;
+    JLT Ciclo;
     POP R3; 
     POP R1; 
     POP R0;
