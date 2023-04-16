@@ -1,8 +1,8 @@
 ;periférico de entrada
 Opcao EQU 280H;
 OK EQU 290H;
-ListaBebidas 300H;
-ListaSnacks 310H;
+ListaBebidas EQU 300H;
+ListaSnacks EQU 310H;
 
 ;Opções
 ;Menu Inical
