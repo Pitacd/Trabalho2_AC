@@ -48,13 +48,22 @@ StockAutent:
 
 ;interface do stock vazio
 Place 2200H;
-    String "---- Stock -----";
+    String "-- Stock  /  ---";
     String "                ";
     String "                ";
     String "                ";
     String "                ";
     String "                ";
     String "4) Voltar       ";
+
+Place 2280H;
+    String "-- Stock  /  ---";
+    String "                ";
+    String "                ";
+    String "                ";
+    String "                ";
+    String "                ";
+    String "4) Seguinte     ";
 
 ;interface de pagamento
 Place 2280H;
@@ -65,3 +74,6 @@ Place 2280H;
     String "3) 0.50  4) 1.00";
     String "5) 2.00  6) 5.00";
     String "7) Cancelar     ";
+
+Place 0000H;
+
