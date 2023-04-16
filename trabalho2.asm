@@ -1,6 +1,8 @@
 ;periférico de entrada
 Opcao EQU 280H;
 OK EQU 290H;
+ListaBebidas 300H;
+ListaSnacks 310H;
 
 ;Opções
 ;Menu Inical
@@ -130,18 +132,43 @@ EscPagamento:
 
 Place 2480H;
 MenuErro:
-    String "    Atencao     ";
-    String "     Opcao      ";
-    String "    Errada      ";
     String "                ";
     String "                ";
+    String "    ATENCAO     ";
+    String "     OPCAO      ";
+    String "    ERRADA      ";
     String "                ";
     String "                ";
+
+
+;Primeira instrução
+Place 0000H;
+Inicio:
+    MOV R0, MenuInicial;
+    JMP R0;
+
+;----------------------------
+;    Menu Inicial
+;----------------------------
+Place 3000H;
+MenuInicial:
+    CALL MostraDisplay;
+    CALL LimpaPerifericos;
+    MOV R0, Opcao;
+    MOV R1, [R0];
+LeOInical:
+    CMP R1, 0;
+    JEQ LeOInical;
+    CMP R1, 1;
+    JEQ MenuProdCategoria;
+    CMP R1,2;
+    JEQ StockAutenticacao;
+    JMP MenuInicial;
 
 ;---------------------------------
 ;  Menu das Categorias de Produtos
 ;---------------------------------
-MProdCategoria:
+MenuProdCategoria:
     MOV R2,ProdCategoria; 
     CALL MostraDisplay;
     CALL LimpaPerifericos;
@@ -157,6 +184,59 @@ LeOpProdutos:
     CAll RotinaErro;
     JMP MProdCategoria;
 
+;------------------------------
+;      Menu das Bebidas
+;------------------------------
+MenuBebidas:
+    CALL MostraDisplay;
+    CALL LimpaPerifericos;
+    MOV R0, PerEntrada;
+    MOV R3, ListaBebidas;
+    MOV R1, [R0];
+    MOV R2, 1;
+    CMP R1, R2; R1==1
+    JEQ IrPagamento;
+    ADD R2, 1;
+    CMP R1, R2; R1==2
+    JEQ IrPagamento;
+    ADD R2, 1;
+    CMP R1, R2; R1==3
+    JEQ IrPagamento;
+    ADD R2, 4;
+    CMP R1, R2; R1==7
+    JEQ MenuProdCategoria;
+    JMP MenuBebidas;
+
+;------------------------------
+;      Menu dos Snacks
+;------------------------------
+MenuSnacks:
+    CALL MostraDisplay;
+    CALL LimpaPerifericos;
+    MOV R0, PerEntrada;
+    MOV R3, ListaSnacks;
+    MOV R1, [R0];
+    MOV R2, 1;
+    CMP R1, R2; R1==1
+    JEQ IrPagamento;
+    ADD R2, 1;
+    ADD R3, nº de bytes q tem cada elemento da lista;
+    CMP R1, R2; R1==2
+    JEQ IrPagamento;
+    ADD R2, 1;
+    ADD R3, nº de bytes q tem cada elemento da lista;
+    CMP R1, R2; R1==3
+    JEQ IrPagamento;
+    ADD R2, 4;
+    ADD R3, (nº de bytes q tem cada elemento da lista)*4;
+    CMP R1, R2; R1==7
+    JEQ MenuProdCategoria;
+    JMP MenuSnacks;
+
+IrPagamento:
+    MOV R4,[R3]; R4 é o pagar
+    ; verifica se existe esse produto no stock
+    JMP Pagamento;
 
 ;--------------------------
 ;  Rotina Erro
@@ -179,7 +259,7 @@ Erro:
     RET;
 
 ;------------------------
-;   Mostrar Display
+;   MostraDispla Display
 ;------------------------
 MostraDisplay:
     PUSH R0;
