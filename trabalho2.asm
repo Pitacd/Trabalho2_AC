@@ -1,3 +1,27 @@
+;periférico de entrada
+Opcao EQU 280H;
+OK EQU 290H;
+
+;Opções
+;Menu Inical
+OProdutos EQU 1;
+OStock EQU 2;
+;ProdCategorias
+OBebidas EQU 1;
+OSnacks EQU 2;
+;Bebidas
+OAgua EQU 1;
+OCocaCola EQU 2;
+OCafe EQU 3;
+;Snacks
+OBatata EQU 1;
+OBolacha EQU 2;
+O
+
+OCancelar EQU 7;
+OVoltar EQU 4;
+
+
 ;display (periférico de saída)
 DisplayBegin EQU 200H;
 DisplayEnd EQu 260H;
@@ -46,8 +70,18 @@ StockAutent:
     String "1) Confirmar    ";
     String "4) Voltar       ";
 
-;interface do stock vazio
+;interface do stock vazio com a opção seguinte
 Place 2200H;
+    String "-- Stock  /  ---";
+    String "                ";
+    String "                ";
+    String "                ";
+    String "                ";
+    String "                ";
+    String "1) Seguinte     ";
+
+;interface do stock vazio com a opção vazio
+Place 2280H;
     String "-- Stock  /  ---";
     String "                ";
     String "                ";
@@ -56,17 +90,8 @@ Place 2200H;
     String "                ";
     String "4) Voltar       ";
 
-Place 2280H;
-    String "-- Stock  /  ---";
-    String "                ";
-    String "                ";
-    String "                ";
-    String "                ";
-    String "                ";
-    String "4) Seguinte     ";
-
 ;interface de pagamento
-Place 2280H;
+Place 2300H;
     String "--- Pagamento---";
     String "Inserido:       ";
     String "Opções:         ";
@@ -75,5 +100,10 @@ Place 2280H;
     String "5) 2.00  6) 5.00";
     String "7) Cancelar     ";
 
-Place 0000H;
+
+ProdCategoria:
+    CALL LimpaDisplay;
+    CALL LimpaPerifericos;
+
+
 
