@@ -220,15 +220,14 @@ MenuSnacks:
     CMP R1, R2; R1==1
     JEQ IrPagamento;
     ADD R2, 1;
-    ADD R3, nº de bytes q tem cada elemento da lista;
+    ADD R3, 1;
     CMP R1, R2; R1==2
     JEQ IrPagamento;
     ADD R2, 1;
-    ADD R3, nº de bytes q tem cada elemento da lista;
+    ADD R3, 1;
     CMP R1, R2; R1==3
     JEQ IrPagamento;
     ADD R2, 4;
-    ADD R3, (nº de bytes q tem cada elemento da lista)*4;
     CMP R1, R2; R1==7
     JEQ MenuProdCategoria;
     JMP MenuSnacks;
