@@ -16,11 +16,13 @@ OCafe EQU 3;
 ;Snacks
 OBatata EQU 1;
 OBolacha EQU 2;
-O
-
+OChiclete EQU 3;
+;Cancelar
 OCancelar EQU 7;
+;Voltar
 OVoltar EQU 4;
-
+;Seguinte
+OSeguinte EQU 1;
 
 ;display (periférico de saída)
 DisplayBegin EQU 200H;
@@ -47,6 +49,16 @@ ProdCategoria:
     String "2) Snacks       ";
     String "7) Cancelar     ";
     String "----------------";
+
+;interface de escolha de bebidas
+Place 2180H;
+StockAutent:
+    String "--- Bebidas ----";
+    String "----------------";
+    String "1) Agua.... 1.00";
+    String "2) CocaCola ";
+    String "----------------";
+    String "4) Voltar       ";
 
 ;interface do talão
 Place 2100H;
