@@ -160,9 +160,9 @@ LeOInical:
     MOVB R1, [R0];
     CMP R1, 0;
     JEQ LeOInical;
-    CMP R1, 1;
+    CMP R1, OProdutos;
     JEQ MenuProdCategoria;
-    ;CMP R1,2;
+    ;CMP R1,OStock;
     ;JEQ StockAutenticacao;
     CALL RotinaErro;
     JMP MenuInicial;
@@ -195,20 +195,19 @@ MenuBebidas:
     MOV R2, EscBebidas;
     CALL MostraDisplay;
     CALL LimpaPerifericos;
+    ;MOV R3, ListaBebidas;
+LeOBebidas:
     MOV R0, Opcao;
-    MOV R3, ListaBebidas;
     MOVB R1, [R0];
-    MOV R2, 1;
-    CMP R1, R2; R1==1
+    CMP R1, 0;
+    JEQ LeOBebidas; 
+    CMP R1, OAgua; R1==1
     JEQ IrPagamento;
-    ADD R2, 1;
-    CMP R1, R2; R1==2
+    CMP R1, OCocaCola; R1==2
     JEQ IrPagamento;
-    ADD R2, 1;
-    CMP R1, R2; R1==3
+    CMP R1, OCafe; R1==3
     JEQ IrPagamento;
-    ADD R2, 4;
-    CMP R1, R2; R1==7
+    CMP R1, OCancelar; R1==7
     JEQ MenuProdCategoria;
     CALL RotinaErro;
     JMP MenuBebidas;
@@ -220,22 +219,19 @@ MenuSnacks:
     MOV R2, EscSnacks;
     CALL MostraDisplay;
     CALL LimpaPerifericos;
-    MOV R0, Opcao;
-    MOV R3, ListaSnacks;
+    ;MOV R3, ListaSnacks;
+LeOSnacks:
+    MOV R0, Opcao
     MOVB R1, [R0];
-    MOV R2, 1;
-    CMP R1, R2; R1==1
+    CMP R1, 0;
+    JEQ LeOSnacks;
+    CMP R1, OBatata; R1==1
     JEQ IrPagamento;
-    ADD R2, 1;
-    ADD R3, 1;
-    CMP R1, R2; R1==2
+    CMP R1, OBolacha; R1==2
     JEQ IrPagamento;
-    ADD R2, 1;
-    ADD R3, 1;
-    CMP R1, R2; R1==3
+    CMP R1, OChiclete; R1==3
     JEQ IrPagamento;
-    ADD R2, 4;
-    CMP R1, R2; R1==7
+    CMP R1, OCancelar; R1==7
     JEQ MenuProdCategoria;
     CALL RotinaErro;
     JMP MenuSnacks;
