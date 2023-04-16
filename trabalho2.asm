@@ -210,6 +210,7 @@ MenuBebidas:
     ADD R2, 4;
     CMP R1, R2; R1==7
     JEQ MenuProdCategoria;
+    CALL RotinaErro;
     JMP MenuBebidas;
 
 ;------------------------------
@@ -236,6 +237,7 @@ MenuSnacks:
     ADD R2, 4;
     CMP R1, R2; R1==7
     JEQ MenuProdCategoria;
+    CALL RotinaErro;
     JMP MenuSnacks;
 
 ;-------------------------------
