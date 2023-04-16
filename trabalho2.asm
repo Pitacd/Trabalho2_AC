@@ -190,7 +190,7 @@ LeOpProdutos:
 MenuBebidas:
     CALL MostraDisplay;
     CALL LimpaPerifericos;
-    MOV R0, PerEntrada;
+    MOV R0, Opcao;
     MOV R3, ListaBebidas;
     MOV R1, [R0];
     MOV R2, 1;
@@ -213,7 +213,7 @@ MenuBebidas:
 MenuSnacks:
     CALL MostraDisplay;
     CALL LimpaPerifericos;
-    MOV R0, PerEntrada;
+    MOV R0, Opcao;
     MOV R3, ListaSnacks;
     MOV R1, [R0];
     MOV R2, 1;
@@ -233,6 +233,9 @@ MenuSnacks:
     JEQ MenuProdCategoria;
     JMP MenuSnacks;
 
+;-------------------------------
+;     Pagamento
+;-------------------------------
 IrPagamento:
     MOV R4,[R3]; R4 é o pagar
     ; verifica se existe esse produto no stock
