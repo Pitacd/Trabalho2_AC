@@ -182,7 +182,7 @@ LeOpProdutos:
     CMP R1, OSnacks;
     JEQ MenuSnacks;
     CAll RotinaErro;
-    JMP MProdCategoria;
+    JMP MenuProdCategoria;
 
 ;------------------------------
 ;      Menu das Bebidas
