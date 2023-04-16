@@ -129,9 +129,36 @@ EscPagamento:
     String "7) Cancelar     ";
 
 
-ProdCategoria:
-    CALL LimpaDisplay;
+MProdCategoria:
+    MOV R2,ProdCategoria; 
+    CALL MostraDisplay;
     CALL LimpaPerifericos;
+    MOV R0, Opcao;
+    MOVB R1, [R0];
+    CMP R1, OBebidas;
+    JEQ MenuBebidas;
+    CMP R1, OSnacks;
+    JEQ MenuSnacks;
+    
+
+
+MostraDisplay:
+    PUSH R0;
+    PUSH R1;
+    PUSH R3;
+    MOV R0, DisplayBegin;
+    MOV R1, DisplayEnd;
+Ciclo:
+    MOV R3, [R2];
+    MOV [R0], R3;
+    ADD R0, 2;
+    ADD R2, 2;
+    CMP R0, R1;
+    JLE Ciclo;
+    POP R3; 
+    POP R1; 
+    POP R0;
+    RET; 
 
 
 
