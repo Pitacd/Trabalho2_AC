@@ -28,7 +28,7 @@ OSeguinte EQU 1;
 
 ;display (periférico de saída)
 DisplayBegin EQU 200H;
-DisplayEnd EQu 260H;
+DisplayEnd EQu 270H;
 
 ;interface incial 
 Place 2000H;
@@ -124,7 +124,7 @@ Place 2400H;
 EscPagamento:
     String "--- Pagamento---";
     String "Inserido:       ";
-    String "Opções:         ";
+    String "Opcoes:         ";
     String "1) 0.10  2) 0.20";
     String "3) 0.50  4) 1.00";
     String "5) 2.00  6) 5.00";
@@ -152,6 +152,7 @@ Inicio:
 ;----------------------------
 Place 3000H;
 MenuInicial:
+    MOV R2, MaquinaMadeira;
     CALL MostraDisplay;
     CALL LimpaPerifericos;
     MOV R0, Opcao;
@@ -161,8 +162,8 @@ LeOInical:
     JEQ LeOInical;
     CMP R1, 1;
     JEQ MenuProdCategoria;
-    CMP R1,2;
-    JEQ StockAutenticacao;
+    ;CMP R1,2;
+    ;JEQ StockAutenticacao;
     JMP MenuInicial;
 
 ;---------------------------------
@@ -188,6 +189,7 @@ LeOpProdutos:
 ;      Menu das Bebidas
 ;------------------------------
 MenuBebidas:
+    MOV R2, EscBebidas;
     CALL MostraDisplay;
     CALL LimpaPerifericos;
     MOV R0, Opcao;
@@ -211,6 +213,7 @@ MenuBebidas:
 ;      Menu dos Snacks
 ;------------------------------
 MenuSnacks:
+    MOV R2, EscSnacks;
     CALL MostraDisplay;
     CALL LimpaPerifericos;
     MOV R0, Opcao;
@@ -238,7 +241,7 @@ MenuSnacks:
 IrPagamento:
     MOV R4,[R3]; R4 é o pagar
     ; verifica se existe esse produto no stock
-    JMP Pagamento;
+    JMP IrPagamento;so pa resolver problemas resolver depois
 
 ;--------------------------
 ;  Rotina Erro
@@ -281,5 +284,21 @@ Ciclo:
     POP R0;
     RET; 
 
+;-----------------------
+;    Limpa Perifericos
+;-----------------------
+LimpaPerifericos:
+    PUSH R0;
+    PUSH R1;
+    PUSH R2;
+    MOV R0, Opcao;
+    MOV R1, OK;
+    MOV R2, 0;
+    MOVB [R0], R2;
+    MOVB [R1], R2;
+    POP R2;
+    POP R1;
+    POP R0;
+    RET;
 
 
