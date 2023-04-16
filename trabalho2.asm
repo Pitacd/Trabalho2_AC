@@ -51,17 +51,30 @@ ProdCategoria:
     String "----------------";
 
 ;interface de escolha de bebidas
-Place 2180H;
-StockAutent:
+Place 2100H;
+EscBebidas:
     String "--- Bebidas ----";
     String "----------------";
-    String "1) Agua.... 1.00";
-    String "2) CocaCola ";
+    String "1) Agua     1.00";
+    String "2) CocaCola 2.50";
+    String "3) Cafe     0.60";
+    String "                ";
+    String "7) Cancelar     ";
+    
+
+;interface de escolha de snacks
+Place 2180H;
+EscSnacks:
+    String "---- Snacks ----";
     String "----------------";
-    String "4) Voltar       ";
+    String "1) Batatas  1.70";
+    String "2) Bolacha  2.10";
+    String "3) Chiclete 1.30";
+    String "                ";
+    String "7) Cancelar     ";
 
 ;interface do talão
-Place 2100H;
+Place 2200H;
 Talao:
     String "----------------";
     String "     TALAO      ";
@@ -72,7 +85,7 @@ Talao:
     String "----------------";
 
 ;interface incial para acessar ao stock
-Place 2180H;
+Place 2280H;
 StockAutent:
     String "---- Stock -----";
     String "----------------";
@@ -83,7 +96,8 @@ StockAutent:
     String "4) Voltar       ";
 
 ;interface do stock vazio com a opção seguinte
-Place 2200H;
+Place 2300H;
+StockOSeg:
     String "-- Stock  /  ---";
     String "                ";
     String "                ";
@@ -93,7 +107,8 @@ Place 2200H;
     String "1) Seguinte     ";
 
 ;interface do stock vazio com a opção vazio
-Place 2280H;
+Place 2380H;
+StockOVolt:
     String "-- Stock  /  ---";
     String "                ";
     String "                ";
@@ -103,7 +118,8 @@ Place 2280H;
     String "4) Voltar       ";
 
 ;interface de pagamento
-Place 2300H;
+Place 2400H;
+EscPagamento:
     String "--- Pagamento---";
     String "Inserido:       ";
     String "Opções:         ";
