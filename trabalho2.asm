@@ -128,20 +128,59 @@ EscPagamento:
     String "5) 2.00  6) 5.00";
     String "7) Cancelar     ";
 
+Place 2480H;
+MenuErro:
+    String "    Atencao     ";
+    String "     Opcao      ";
+    String "    Errada      ";
+    String "                ";
+    String "                ";
+    String "                ";
+    String "                ";
 
+;---------------------------------
+;  Menu das Categorias de Produtos
+;---------------------------------
 MProdCategoria:
     MOV R2,ProdCategoria; 
     CALL MostraDisplay;
     CALL LimpaPerifericos;
+LeOpProdutos:
     MOV R0, Opcao;
     MOVB R1, [R0];
+    CMP R1, 0;
+    JEQ LeOpProdutos;
     CMP R1, OBebidas;
     JEQ MenuBebidas;
     CMP R1, OSnacks;
     JEQ MenuSnacks;
-    
+    CAll RotinaErro;
+    JMP MProdCategoria;
 
 
+;--------------------------
+;  Rotina Erro
+;--------------------------
+RotinaErro:
+    PUSH R0;
+    PUSH R1;
+    PUSH R2;
+    MOV R2, MenuErro;
+    CALL MostraDisplay;
+    CALL LimpaPerifericos;
+    MOV R0, OK;
+Erro:
+    MOVB R1, [R0]
+    CMP R1, 1;
+    JNE Erro;
+    POP R2;
+    POP R1;
+    POP R0;
+    RET;
+
+;------------------------
+;   Mostrar Display
+;------------------------
 MostraDisplay:
     PUSH R0;
     PUSH R1;
