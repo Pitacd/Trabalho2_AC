@@ -32,27 +32,27 @@ ListaMoedas:
 Place 1000H;
 ListaBebidas:
     String "Agua    ";
-    Word 100;
-    Word 0;
+    Word 100; preço
+    Word 0; quantidade
     String "CocaCola";
-    Word 250;
-    Word 0;
+    Word 250; preço
+    Word 0; quantidade
     String "Fanta   ";
-    Word 220;
-    Word 0;
+    Word 220; preço
+    Word 0; quantidade
 
 ;lista de snacks com os respectivos preços e quantidades na máquina
 Place 1500H;
 ListaSnacks:
     String "Batatas ";
-    Word 170;
-    Word 0;
+    Word 170; preço 
+    Word 0; quantidade 
     String "Bolacha ";
-    Word 210;
-    Word 0;
+    Word 210; preço 
+    Word 0; quantidade 
     String "Chiclete";
-    Word 130;
-    Word 0;
+    Word 130; preço 
+    Word 0; quantidade 
 
 ;interface incial 
 Place 2000H;
