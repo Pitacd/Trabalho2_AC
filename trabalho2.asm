@@ -176,19 +176,19 @@ Inicio:
 ;----------------------------
 Place 3000H;
 MenuInicial:
-    MOV R2, MaquinaMadeira;
+    MOV R0, MaquinaMadeira;
     CALL MostraDisplay;
     CALL LimpaPerifericos;
 LeOInical:    
-    MOV R0, Opcao;
-    MOVB R1, [R0];
-    CMP R1, 0;
+    MOV R1, Opcao;
+    MOVB R2, [R1];
+    CMP R2, 0; verifica se foi introduzido alguma opção
     JEQ LeOInical;
-    CMP R1, OProdutos;
+    CMP R2, 1; verifica se a opção selecionada foi a dos produtos
     JEQ MenuProdCategoria;
     ;CMP R1,OStock;
     ;JEQ StockAutenticacao;
-    CALL RotinaErro;
+    CALL RotinaErro; caso introduza alguma opção não existente é chamado um erro
     JMP MenuInicial;
 
 ;---------------------------------
@@ -199,27 +199,32 @@ MenuProdCategoria:
     CALL MostraDisplay;
     CALL LimpaPerifericos;
 LeOpProdutos:
-    MOV R0, Opcao;
-    MOVB R1, [R0];
-    CMP R1, 0;
+    MOV R1, Opcao;
+    MOVB R2, [R1];
+    CMP R2, 0;
     JEQ LeOpProdutos;
-    CMP R1, OBebidas;
-    JEQ MenuBebidas;
-    CMP R1, OSnacks;
-    JEQ MenuSnacks;
-    CMP R1, OCancelar;
+    CMP R2, 1; verifica se a opção selecionada foi a das bebidas
+    JEQ MenuBebidasSnacks;
+    CMP R2, 2; verifica se a opção selecionada foi a dos snacks
+    JEQ MenuBebidasSnacks;
+    CMP R2, 7; verifica se a operação foi cancelada
     JEQ MenuInicial;
-    CALL RotinaErro;
+    CALL RotinaErro; caso introduza alguma opção não existente é chamado um erro
     JMP MenuProdCategoria;
 
 ;------------------------------
-;      Menu das Bebidas
+;      Menu das Bebidas / Snacks
 ;------------------------------
 MenuBebidas:
-    MOV R2, EscBebidas;
+    CMP R2, 2;
+    JNE MenuSnacks;
+    MOV R0, EscBebidas;
+    JMP MenuOpcBS;
+MenuSnaks:
+    MOV R0, EscSnacks;
+MenuOpcBS:
     CALL MostraDisplay;
     CALL LimpaPerifericos;
-    ;MOV R3, ListaBebidas;
 LeOBebidas:
     MOV R0, Opcao;
     MOVB R1, [R0];
@@ -275,14 +280,14 @@ RotinaErro:
     PUSH R0;
     PUSH R1;
     PUSH R2;
-    MOV R2, MenuErro;
+    MOV R0, MenuErro;
     CALL MostraDisplay;
     CALL LimpaPerifericos;
-    MOV R0, OK;
+    MOV R1, OK;
 Erro:
-    MOVB R1, [R0]
-    CMP R1, 1;
-    JNE Erro;
+    MOVB R2, [R1]; R2 = ao byte menos significativo da memoria de endereço R1
+    CMP R2, 1; verifica se OK está ativo, igual a 1
+    JNE Erro; 
     POP R2;
     POP R1;
     POP R0;
@@ -302,7 +307,7 @@ Ciclo:
     MOV [R1], R3; o conteúdo da memória de endereço R1 = a R3
     ADD R0, 2; avança para a palavra logo a seguir a R0
     ADD R1, 2; avança para a palavra logo a seguir a R1
-    CMP R1, R2; verifica se já 
+    CMP R1, R2; verifica se já preencheu o display todo
     JLT Ciclo;
     POP R3; 
     POP R2; 
