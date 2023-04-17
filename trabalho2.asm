@@ -6,8 +6,29 @@ OK EQU 290H;
 DisplayBegin EQU 200H;
 DisplayEnd EQu 270H;
 
-;lista de bebidas com os respectivos preços e quantidades na máquina
+;lista de moedas e quantidades das mesma na máquina
 Place 500H;
+ListaMoedas:
+    String "10Cent  ";
+    Word 10; 
+    Word 0; quantidade de moedas de 10 centimos
+    String "20Cent  ";
+    Word 20; 
+    Word 0; quantidade de moedas de 20 centimos
+    String "50Cent  ";
+    Word 50;
+    Word 0; quantidade de moedas de 50 centimos
+    String "1Euro   ";
+    Word 100; moeda de 1 euro
+    Word 0; quantidade de moedas de 1 euro
+    String "2Euro   ";
+    Word 200; moeda de 2 euros
+    Word 0; quantidade de moedas de 2 euros
+    Word 500; nota de 5 euros
+    Word 0; quantidade de notas de 5 euros
+
+;lista de bebidas com os respectivos preços e quantidades na máquina
+Place 700H;
 ListaBebidas:
     String "Agua    ";
     Word 100;
@@ -20,7 +41,7 @@ ListaBebidas:
     Word 0;
 
 ;lista de snacks com os respectivos preços e quantidades na máquina
-Place 1000H;
+Place 1400H;
 ListaSnacks:
     String "Batatas ";
     Word 170;
