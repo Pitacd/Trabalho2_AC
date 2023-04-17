@@ -1,8 +1,6 @@
 ;periférico de entrada
 Opcao EQU 280H;
 OK EQU 290H;
-ListaBebidas EQU 300H;
-ListaSnacks EQU 310H;
 
 ;Opções
 ;Menu Inical
@@ -14,7 +12,7 @@ OSnacks EQU 2;
 ;Bebidas
 OAgua EQU 1;
 OCocaCola EQU 2;
-OCafe EQU 3;
+OFanta EQU 3;
 ;Snacks
 OBatata EQU 1;
 OBolacha EQU 2;
@@ -29,6 +27,32 @@ OSeguinte EQU 1;
 ;display (periférico de saída)
 DisplayBegin EQU 200H;
 DisplayEnd EQu 270H;
+
+;lista de bebidas com os respectivos preços e quantidades na máquina
+Place 500H;
+ListaBebidas:
+    String "Agua    ";
+    Word 100;
+    Word 0;
+    String "CocaCola";
+    Word 250;
+    Word 0;
+    String "Fanta   ";
+    Word 220;
+    Word 0;
+
+;lista de snacks com os respectivos preços e quantidades na máquina
+Place 1000H;
+ListaSnacks:
+    String "Batatas ";
+    Word 170;
+    Word 0;
+    String "Bolacha ";
+    Word 210;
+    Word 0;
+    String "Chiclete";
+    Word 130;
+    Word 0;
 
 ;interface incial 
 Place 2000H;
@@ -59,7 +83,7 @@ EscBebidas:
     String "----------------";
     String "1) Agua     1.00";
     String "2) CocaCola 2.50";
-    String "3) Cafe     0.60";
+    String "3) Fanta    2.20";
     String "                ";
     String "7) Cancelar     ";
     
@@ -205,7 +229,7 @@ LeOBebidas:
     JEQ IrPagamento;
     CMP R1, OCocaCola; R1==2
     JEQ IrPagamento;
-    CMP R1, OCafe; R1==3
+    CMP R1, OFanta; R1==3
     JEQ IrPagamento;
     CMP R1, OCancelar; R1==7
     JEQ MenuProdCategoria;
