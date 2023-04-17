@@ -195,7 +195,7 @@ LeOInical:
 ;  Menu das Categorias de Produtos
 ;---------------------------------
 MenuProdCategoria:
-    MOV R2,ProdCategoria; 
+    MOV R0,ProdCategoria; 
     CALL MostraDisplay;
     CALL LimpaPerifericos;
 LeOpProdutos:
@@ -292,21 +292,21 @@ Erro:
 ;   MostraDispla Display
 ;------------------------
 MostraDisplay:
-    PUSH R0;
     PUSH R1;
+    PUSH R2;
     PUSH R3;
-    MOV R0, DisplayBegin;
-    MOV R1, DisplayEnd;
+    MOV R1, DisplayBegin; R1 = 1º posição do display 
+    MOV R2, DisplayEnd; R2 = última posição do display
 Ciclo:
-    MOV R3, [R2];
-    MOV [R0], R3;
-    ADD R0, 2;
-    ADD R2, 2;
-    CMP R0, R1;
+    MOV R3, [R0]; R3 = conteúdo da memória de endereço R0
+    MOV [R1], R3; o conteúdo da memória de endereço R1 = a R3
+    ADD R0, 2; avança para a palavra logo a seguir a R0
+    ADD R1, 2; avança para a palavra logo a seguir a R1
+    CMP R1, R2; verifica se já 
     JLT Ciclo;
     POP R3; 
-    POP R1; 
-    POP R0;
+    POP R2; 
+    POP R1;
     RET; 
 
 ;-----------------------
