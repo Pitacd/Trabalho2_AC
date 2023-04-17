@@ -19,16 +19,17 @@ ListaMoedas:
     Word 50;
     Word 0; quantidade de moedas de 50 centimos
     String "1Euro   ";
-    Word 100; moeda de 1 euro
+    Word 100;
     Word 0; quantidade de moedas de 1 euro
-    String "2Euro   ";
-    Word 200; moeda de 2 euros
+    String "2Euros  ";
+    Word 200;
     Word 0; quantidade de moedas de 2 euros
-    Word 500; nota de 5 euros
+    String "5Euros  ";
+    Word 500;
     Word 0; quantidade de notas de 5 euros
 
 ;lista de bebidas com os respectivos preços e quantidades na máquina
-Place 700H;
+Place 1000H;
 ListaBebidas:
     String "Agua    ";
     Word 100;
@@ -41,7 +42,7 @@ ListaBebidas:
     Word 0;
 
 ;lista de snacks com os respectivos preços e quantidades na máquina
-Place 1400H;
+Place 1500H;
 ListaSnacks:
     String "Batatas ";
     Word 170;
