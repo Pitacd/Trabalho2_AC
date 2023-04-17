@@ -2,12 +2,14 @@
 Opcao EQU 280H;
 OK EQU 290H;
 
+;SP EQU 0F00H fica nesta posição
+
 ;display (periférico de saída)
 DisplayBegin EQU 200H;
 DisplayEnd EQu 270H;
 
 ;lista de moedas e quantidades das mesma na máquina
-Place 500H;
+Place 0F50H;
 ListaMoedas:
     String "10Cent  ";
     Word 10; 
