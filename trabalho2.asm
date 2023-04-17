@@ -2,28 +2,6 @@
 Opcao EQU 280H;
 OK EQU 290H;
 
-;Opções
-;Menu Inical
-OProdutos EQU 1;
-OStock EQU 2;
-;ProdCategorias
-OBebidas EQU 1;
-OSnacks EQU 2;
-;Bebidas
-OAgua EQU 1;
-OCocaCola EQU 2;
-OFanta EQU 3;
-;Snacks
-OBatata EQU 1;
-OBolacha EQU 2;
-OChiclete EQU 3;
-;Cancelar
-OCancelar EQU 7;
-;Voltar
-OVoltar EQU 4;
-;Seguinte
-OSeguinte EQU 1;
-
 ;display (periférico de saída)
 DisplayBegin EQU 200H;
 DisplayEnd EQu 270H;
@@ -154,6 +132,7 @@ EscPagamento:
     String "5) 2.00  6) 5.00";
     String "7) Cancelar     ";
 
+; interface de erro, em caso de opção inexistente
 Place 2480H;
 MenuErro:
     String "                ";
@@ -180,11 +159,11 @@ MenuInicial:
     CALL MostraDisplay;
     CALL LimpaPerifericos;
 LeOInical:    
-    MOV R1, Opcao;
-    MOVB R2, [R1];
-    CMP R2, 0; verifica se foi introduzido alguma opção
+    MOV R2, Opcao;
+    MOVB R1, [R2];
+    CMP R1, 0; verifica se foi introduzido alguma opção
     JEQ LeOInical;
-    CMP R2, 1; verifica se a opção selecionada foi a dos produtos
+    CMP R1, 1; verifica se a opção selecionada foi a dos produtos
     JEQ MenuProdCategoria;
     ;CMP R1,OStock;
     ;JEQ StockAutenticacao;
@@ -199,71 +178,45 @@ MenuProdCategoria:
     CALL MostraDisplay;
     CALL LimpaPerifericos;
 LeOpProdutos:
-    MOV R1, Opcao;
-    MOVB R2, [R1];
-    CMP R2, 0;
+    MOV R2, Opcao;
+    MOVB R1, [R2];
+    CMP R1, 0;
     JEQ LeOpProdutos;
-    CMP R2, 1; verifica se a opção selecionada foi a das bebidas
-    JEQ MenuBebidasSnacks;
-    CMP R2, 2; verifica se a opção selecionada foi a dos snacks
-    JEQ MenuBebidasSnacks;
-    CMP R2, 7; verifica se a operação foi cancelada
+    CMP R1, 1; verifica se a opção selecionada foi a das bebidas
+    JEQ MenuBebidas;
+    CMP R1, 2; verifica se a opção selecionada foi a dos snacks
+    JEQ MenuSnacks;
+    CMP R1, 7; verifica se a operação foi cancelada
     JEQ MenuInicial;
     CALL RotinaErro; caso introduza alguma opção não existente é chamado um erro
     JMP MenuProdCategoria;
 
 ;------------------------------
-;      Menu das Bebidas / Snacks
+;   Menu das Bebidas / Snacks
 ;------------------------------
 MenuBebidas:
-    CMP R2, 2;
-    JNE MenuSnacks;
     MOV R0, EscBebidas;
     JMP MenuOpcBS;
-MenuSnaks:
+MenuSnacks:
     MOV R0, EscSnacks;
 MenuOpcBS:
     CALL MostraDisplay;
     CALL LimpaPerifericos;
-LeOBebidas:
-    MOV R0, Opcao;
-    MOVB R1, [R0];
-    CMP R1, 0;
-    JEQ LeOBebidas; 
-    CMP R1, OAgua; R1==1
+LeOpcBS:
+    MOV R3, Opcao;
+    MOVB R2, [R3];
+    CMP R2, 0;
+    JEQ LeOpcBS; 
+    CMP R2, 1; verifica se foi selecionada a 1º opção
     JEQ IrPagamento;
-    CMP R1, OCocaCola; R1==2
+    CMP R2, 2; verifica se foi selecionada a 2º opção
     JEQ IrPagamento;
-    CMP R1, OFanta; R1==3
+    CMP R2, 3; verifica se foi selecionada a 3º opção
     JEQ IrPagamento;
-    CMP R1, OCancelar; R1==7
+    CMP R2, 7; verifica se a operação foi cancelada
     JEQ MenuProdCategoria;
-    CALL RotinaErro;
-    JMP MenuBebidas;
-
-;------------------------------
-;      Menu dos Snacks
-;------------------------------
-MenuSnacks:
-    MOV R2, EscSnacks;
-    CALL MostraDisplay;
-    CALL LimpaPerifericos;
-    ;MOV R3, ListaSnacks;
-LeOSnacks:
-    MOV R0, Opcao
-    MOVB R1, [R0];
-    CMP R1, 0;
-    JEQ LeOSnacks;
-    CMP R1, OBatata; R1==1
-    JEQ IrPagamento;
-    CMP R1, OBolacha; R1==2
-    JEQ IrPagamento;
-    CMP R1, OChiclete; R1==3
-    JEQ IrPagamento;
-    CMP R1, OCancelar; R1==7
-    JEQ MenuProdCategoria;
-    CALL RotinaErro;
-    JMP MenuSnacks;
+    CALL RotinaErro; caso introduza alguma opção não existente é chamado um erro
+    JMP MenuOpcBS;
 
 ;-------------------------------
 ;     Pagamento
@@ -300,15 +253,18 @@ MostraDisplay:
     PUSH R1;
     PUSH R2;
     PUSH R3;
+    PUSH R4;
+    MOV R4, R0; R4 = posição na memória onde se encontra a posição de uma interface
     MOV R1, DisplayBegin; R1 = 1º posição do display 
     MOV R2, DisplayEnd; R2 = última posição do display
 Ciclo:
-    MOV R3, [R0]; R3 = conteúdo da memória de endereço R0
+    MOV R3, [R4]; R3 = conteúdo da memória de endereço R4
     MOV [R1], R3; o conteúdo da memória de endereço R1 = a R3
-    ADD R0, 2; avança para a palavra logo a seguir a R0
+    ADD R4, 2; avança para a palavra logo a seguir a R4
     ADD R1, 2; avança para a palavra logo a seguir a R1
     CMP R1, R2; verifica se já preencheu o display todo
     JLT Ciclo;
+    POP R4;
     POP R3; 
     POP R2; 
     POP R1;
