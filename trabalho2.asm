@@ -180,7 +180,7 @@ MenuProdCategoria:
 LeOpProdutos:
     MOV R2, Opcao;
     MOVB R1, [R2];
-    CMP R1, 0;
+    CMP R1, 0; verifica se foi introduzido alguma opção
     JEQ LeOpProdutos;
     CMP R1, 1; verifica se a opção selecionada foi a das bebidas
     JEQ MenuBebidas;
@@ -205,7 +205,7 @@ MenuOpcBS:
 LeOpcBS:
     MOV R3, Opcao;
     MOVB R2, [R3];
-    CMP R2, 0;
+    CMP R2, 0; verifica se foi introduzido alguma opção
     JEQ LeOpcBS; 
     CMP R2, 1; verifica se foi selecionada a 1º opção
     JEQ IrPagamento;
