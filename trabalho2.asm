@@ -258,12 +258,15 @@ RotinaErro:
     PUSH R1;
     PUSH R2;
     MOV R0, MenuErro;
+Erro:
     CALL MostraDisplay;
     CALL LimpaPerifericos;
+CiclErro:
     MOV R1, OK;
-Erro:
     MOVB R2, [R1]; R2 = ao byte menos significativo da memoria de endereço R1
-    CMP R2, 1; verifica se OK está ativo, igual a 1
+    CMP R2, 0; verifica se OK está ativo, igual a 1
+    JEQ CiclErro;
+    CMP R2, 1;
     JNE Erro; 
     POP R2;
     POP R1;
