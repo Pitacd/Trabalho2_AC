@@ -320,13 +320,9 @@ Ciclo:
 LimpaPerifericos:
     PUSH R0;
     PUSH R1;
-    PUSH R2;
     MOV R0, PE;
-    MOV R1, OK;
-    MOV R2, 0;
-    MOVB [R0], R2;
-    MOVB [R1], R2;
-    POP R2;
+    MOV R1, 0;
+    MOV [R0], R1;
     POP R1;
     POP R0;
     RET;
