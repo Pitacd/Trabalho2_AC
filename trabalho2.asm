@@ -313,17 +313,17 @@ LePass:
 VerifPass:
     CMP R1, 5; verificar se o utilizador já inseriu 5 caracteres
     JLT FaltaCaracteres;
-    MOV R0, 0;
+    MOV R0, 0; R0 = i
 CompPass:
-    MOV R1, UserPassword;
-    MOV R2, Password;
-    ADD R1, R0;
-    ADD R2, R0;
-    MOVB R3, [R1]; caracter na posicao i da password inserida pelo utilizador
-    MOVB R4, [R2]; caracter na posicao i da password 
+    MOV R1, UserPassword; R1 = posição da password inserida pelo utilizador
+    MOV R2, Password; R2 = posição da password
+    ADD R1, R0; R1 = R1 + i
+    ADD R2, R0; R2 = R2 + i
+    MOVB R3, [R1]; R3 = caracter na posicao i da password inserida pelo utilizador
+    MOVB R4, [R2]; R4 = caracter na posicao i da password 
     CMP R3, R4; comparação do caracter na posição i da password com o da password inserida pelo utilizador
     JNE PasswordErrada;
-    ADD R0, 1; incrementação do i
+    ADD R0, 1; i = i + 1
     CMP R0, 5; verificar se já se percorreu todos os caracteres 
     JGE Stock;
     JMP CompPass;
