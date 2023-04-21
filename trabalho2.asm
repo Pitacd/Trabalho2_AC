@@ -361,24 +361,25 @@ Stock:
     JMP Stock;
 
 
-
-
+;------------------------------------------------------------------------------
+;  Colocar * em vez de _ para o utilizador verificar que o caracter foi inserido
+;-----------------------------------------------------------------------------
 AddCaractMenu:
     PUSH R0;
     PUSH R2;
     PUSH R3;
     PUSH R4;
-    MOV R0, 0;
-    MOV R2, PosCaractWrite;
-    MOV R3, R1;
-    SHL R3, 1;
+    MOV R0, 0; R0 = i = 0
+    MOV R2, PosCaractWrite; R2 = posição onde se encontra o 1º caracter q será escrito
+    MOV R3, R1; R3 = nº de caracters escritos
+    SHL R3, 1; R3 = 2 x R3
 CicloAddC:
-    CMP R0, R3;
+    CMP R0, R3; verificar se ja todos os substitui _ por *, que representam os caracteres inseridos pelo utilizador  
     JGE FimAddCaract; 
-    MOV R4, CaractWrite;
+    MOV R4, CaractWrite; substituição de _ por *
     MOVB [R2], R4;
-    ADD R0, 2;
-    ADD R2, 2;
+    ADD R0, 2; R0 = R0 + 2
+    ADD R2, 2; R2 = R2 + 2
     JMP CicloAddC;
 FimAddCaract:
     POP R4;
