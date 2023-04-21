@@ -1,6 +1,7 @@
 ;periférico de entrada
 PE EQU 280H;
-CaracterPassWrite EQU 2AH;
+CaracterPassWrite EQU 42;
+PosCartWrite EQU 245H;
 
 ;SP EQU  fica no final da memória
 
@@ -167,7 +168,7 @@ MenuErro:
     String "                ";
     String "                ";
     String "    ATENCAO     ";
-    String "     PE      ";
+    String "     OPCAO      ";
     String "    ERRADA      ";
     String "                ";
     String "                ";
@@ -261,11 +262,41 @@ IrPagamento:
 ;-----------------------------
 StockAutenticacao:
     MOV R0, StockAutent;
+    MOV R1, 0; guarda em R4 o nº de caracteres preenchidos
     CALL MostraDisplay;
-LePass:
+ProxCaracter:
     CALL LimpaPerifericos;
+LePass:
+    MOV R3, PE;
+    MOVB R2, [R3];
+    CMP R2, 0;
+    JEQ LePass;
+    ;CMP R2, 1;
+    ;JEQ VerifPass;
+    CMP R2, 4;
+    JEQ MenuInicial;
+    CALL CaracterWrite;
+    ;CALL GuardaCaract;
+    JMP ProxCaracter;
 
-
+CaracterWrite:
+    PUSH R0;
+    PUSH R2;
+    PUSH R3;
+    CMP R1, 5;
+    JGE FimCarWrit;
+    MOV R0, R1;
+    SHL R0, 1;
+    MOV R2, PosCartWrite;
+    ADD R2, R0;
+    MOV R3, CaracterPassWrite;
+    MOV [R2], R3;
+FimCarWrit:
+    POP R3;
+    POP R2;
+    POP R0;
+    RET;
+    
 
 ;--------------------------
 ;  Rotina Erro
