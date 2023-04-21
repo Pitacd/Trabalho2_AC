@@ -287,8 +287,8 @@ IrPagamento:
 StockAutenticacao:
     MOV R0, StockAutent;
     MOV R1, 0; guarda em R1 o nº de caracteres preenchidos
-    CALL MostraDisplay;
 ProxCaracter:
+    CALL MostraDisplay;
     CALL LimpaPerifericos;
 LePass:
     MOV R3, PE;
@@ -329,6 +329,10 @@ PasswordErrada:
     MOV R3, MenuFaltaCaract;
     CALL RotinaErro;
     JMP StockAutenticacao;
+Stock:
+    MOV R0, StockOSeg;
+    CALL MostraDisplay;
+    CALL LimpaPerifericos;
 
 
 
