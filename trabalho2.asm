@@ -4,6 +4,12 @@ PE EQU 280H;
 ;password inserida pelo utilizador
 UserPassword EQU 300H;
 
+;simbolo de caracter escrito
+CaractWrite EQU 2AH;
+
+;posição onde se encontra o 1º caracter q será escrito
+PosCaractWrite EQU 243H;
+
 ;SP EQU  fica no final da memória
 
 ;display (periférico de saída)
@@ -291,6 +297,7 @@ ProxCaracter:
     CALL MostraDisplay;
     CALL LimpaPerifericos;
 LePass:
+    CALL AddCaractMenu;
     MOV R3, PE;
     MOVB R2, [R3];
     CMP R2, 0; verifica se foi introduzido algo
@@ -360,10 +367,26 @@ AddCaractMenu:
     PUSH R0;
     PUSH R2;
     PUSH R3;
+    PUSH R4;
     MOV R0, 0;
+    MOV R2, PosCaractWrite;
+    MOV R3, R1;
+    SHL R3, 1;
 CicloAddC:
-    ;MOV R2,
-  
+    CMP R0, R3;
+    JGE FimAddCaract; 
+    MOV R4, CaractWrite;
+    MOVB [R2], R4;
+    ADD R0, 2;
+    ADD R2, 2;
+    JMP CicloAddC;
+FimAddCaract:
+    POP R4;
+    POP R3;
+    POP R2;
+    POP R0;
+    RET;
+ 
 ;--------------------------
 ;  Rotina Erro
 ;--------------------------
