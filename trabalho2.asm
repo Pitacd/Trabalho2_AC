@@ -302,10 +302,14 @@ LePass:
     CMP R1, 5; verificar se o utilizador já inseriu 5 caracteres
     JGE ProxCaracter;
     MOV R3, UserPassword; guarda em R3 a posição da password inserida pelo utilizador
-    ADD R3, R1; «posição a guardar o caracter inserido através do nº inserido de carateres
+    ADD R3, R1; posição a guardar o caracter inserido através do nº inserido de carateres
     MOVB [R3], R2; guarda o valor o caracter inserido pelo utilizador na memória
     ADD R1, 1; incrementa em 1 o nº de caracteres inseridos
     JMP ProxCaracter;
+
+;---------------------------------
+; Confirmar Password Inserida
+;--------------------------------
 VerifPass:
     CMP R1, 5; verificar se o utilizador já inseriu 5 caracteres
     JLT FaltaCaracteres;
@@ -323,18 +327,31 @@ CompPass:
     CMP R0, 5;
     JGE Stock;
     JMP CompPass;
+
+;---------------------------
+;  Erro Faltam Caracteres
+;---------------------------
 FaltaCaracteres:
     MOV R3, MenuFaltaCaract;
     CALL RotinaErro;
     JMP ProxCaracter;
+
+;-----------------------------
+;   Password Incorreta
+;-----------------------------
 PasswordErrada:
     MOV R3, MenuPasswordErrada;
     CALL RotinaErro;
     JMP StockAutenticacao;
+
+;------------------------------
+;     Stock
+;------------------------------
 Stock:
     MOV R0, StockOSeg;
     CALL MostraDisplay;
     CALL LimpaPerifericos;
+    JMP Stock;
 
 
 
