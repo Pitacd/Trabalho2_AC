@@ -282,9 +282,129 @@ LeOpcBS:
 ;     Pagamento
 ;-------------------------------
 IrPagamento:
-    MOV R4,[R3]; R4 é o pagar
-    ; verifica se existe esse produto no stock
-    JMP IrPagamento;so pa resolver problemas resolver depois
+    MOV R5, 12; R5 é o nº de bytes entre os elementos da lista de bebidas/snacks
+    SUB R2, 1; R2 é a opção (1,2,3), que na lista corresponde ao (0,1,2) respetivamente
+    MUL R5, R2;
+    ADD R4, R5; R4 é o endereço de memória do valor a pagar
+    MOV R5,[R4]; R5 é o valor a pagar
+    ; verifica se existe esse produto no stock:
+    ADD R4, 2;
+    MOV R7, [R4];
+    CMP R7, 0;
+    JNE TemProduto; Apresenta não existe esse produto
+    SUB R4, 2;
+    CALL RotinaErro;
+    CMP R1, 1;
+    JEQ MenuBebidas;
+    JMP MenuSnacks;
+TemProduto:
+    SUB R4, 2;
+    MOV R6, 0; inicializa o inserido a 0
+    JMP Pagamento;
+
+Pagamento:
+    ; R0 era o display ||| mudou o display
+    ; R1 é 1->bebidas 2->snacks
+    ; R2 era a opção ||| continua sendo esse propósito
+    ; R3 era o endereço de memoria da opção ||| continua sendo esse propósito
+    ; R4 era o endereço de memória do valor a pagar ||| não usado
+    ; R5 é o valor a pagar
+    ; R6 vai ser o inserido, foi inicializado a 0 antes do Pagamento
+    ; R7 vai ser auxiliar
+    ; R8 vai ser usado para o endereço de onde vai ser colocado o numero (tem de ter 5 espaços livres apartir desse endereço)
+    ; R9 endereço da quantidade da respectiva moeda
+
+    MOV R0, EscPagamento;
+    CALL MostraDisplay;
+    CALL LimpaPerifericos;
+    MOV R8, 219H;
+    CALL MostraNumero;
+    ;verifica se ja inserio o suficiente:
+    CMP R6, R5;
+    JGE MenuTalao;
+LeOpPagamento:
+    MOV R3, Opcao;
+    MOVB R2, [R3];
+    CMP R2, 0;
+    JEQ LeOpPagamento;
+;Op1
+    CMP R2, 1;
+    JNE Op2;
+    MOV R7, 10;
+    ADD R6, R7;
+    ;O stock de 10cents aumenta em 1;
+    MOV R9, 50AH;
+    MOV R7, [R9];
+    ADD R7, 1;
+    MOV [R9], R7;
+    JMP Pagamento;
+Op2:
+    CMP R2, 2;
+    JNE Op3;
+    MOV R7, 20;
+    ADD R6, R7;
+    ;O stock de 20cents aumenta em 1;
+    MOV R9, 516H; 50AH+12=516H
+    MOV R7, [R9];
+    ADD R7, 1;
+    MOV [R9], R7;
+    JMP Pagamento;
+Op3:
+    CMP R2 ,3;
+    JNE Op4;
+    MOV R7, 50;
+    ADD R6, R7;
+    ;O stock de 50cents aumenta em 1;
+    MOV R9, 522H;  516H+12=522H;
+    MOV R7, [R9];
+    ADD R7, 1;
+    MOV [R9], R7;
+    JMP Pagamento;
+Op4:
+    CMP R2 ,4;
+    JNE Op5;
+    MOV R7, 100;
+    ADD R6, R7;
+    ;O stock de 1euro aumenta em 1;
+    MOV R9, 52EH; 522H+12=52EH;
+    MOV R7, [R9];
+    ADD R7, 1;
+    MOV [R9], R7;
+    JMP Pagamento;
+Op5:
+    CMP R2 ,5;
+    JNE Op6;
+    MOV R7, 200;
+    ADD R6, R7;
+    ;O stock de 2euros aumenta em 1;
+    MOV R9, 53AH; 52EH+12=53AH;
+    MOV R7, [R9];
+    ADD R7, 1;
+    MOV [R9], R7;
+    JMP Pagamento;
+Op6:
+    CMP R2 ,6;
+    JNE Op7;
+    MOV R7, 500;
+    ADD R6, R7;
+    ;O stock de 5euros aumenta em 1;
+    MOV R9, 546H; 53AH+12=546H;
+    MOV R7, [R9];
+    ADD R7, 1;
+    MOV [R9], R7;
+    JMP Pagamento;
+Op7:
+    CMP R2, 7;
+    JNE OpNULL;
+    CALL DarDinheiro ; doq ele inseriu, R6
+    CMP R1, 1;
+    JEQ MenuBebidas;
+    CMP R1, 2;
+    JEQ MenuSnacks;
+OpNULL:
+    CALL RotinaErro;
+    JMP Pagamento;
+
 
 
 ;-----------------------------
