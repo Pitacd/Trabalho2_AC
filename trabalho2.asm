@@ -198,6 +198,7 @@ LeOInical:
     JEQ MenuProdCategoria;
     CMP R1,2;
     JEQ StockAutenticacao;
+    MOV R3, MenuErro;
     CALL RotinaErro; caso introduza alguma opção não existente é chamado um erro
     JMP MenuInicial;
 
@@ -219,6 +220,7 @@ LeOpProdutos:
     JEQ MenuSnacks;
     CMP R1, 7; verifica se a operação foi cancelada
     JEQ MenuInicial;
+    MOV R3, MenuErro;
     CALL RotinaErro; caso introduza alguma opção não existente é chamado um erro
     JMP MenuProdCategoria;
 
@@ -246,6 +248,7 @@ LeOpcBS:
     JEQ IrPagamento;
     CMP R2, 7; verifica se a operação foi cancelada
     JEQ MenuProdCategoria;
+    MOV R3, MenuErro;
     CALL RotinaErro; caso introduza alguma opção não existente é chamado um erro
     JMP MenuOpcBS;
 
@@ -273,7 +276,7 @@ LePass:
     CMP R2, 0; verifica se foi introduzido algo
     JEQ LePass;
     CMP R2, 1; verifica se o utilizador quer confirmar a palavra passe
-    ;JEQ VerifPass;
+    JEQ VerifPass;
     CMP R2, 4; verifica se o utilizador quer voltar para a pagina inicial
     JEQ MenuInicial;
     CMP R1, 5; verificar se o utilizador já inseriu 5 caracteres
@@ -283,6 +286,24 @@ LePass:
     MOVB [R3], R2; guarda o valor o caracter inserido pelo utilizador na memória
     ADD R1, 1; incrementa em 1 o nº de caracteres inseridos
     JMP ProxCaracter;
+VerifPass:
+    CMP R1, 5; verificar se o utilizador já inseriu 5 caracteres
+    JLT FaltaCaracteres;
+    MOV R0, 0;
+CompPass:
+    MOV R1, UserPassword;
+    ADD R1, R0;
+    MOV R2, Password;
+    ADD R2, R0;
+    CMP R1, R2;
+    JNE PasswordErrada;
+    ADD R0, 1;
+    CMP R0, 5;
+    JGE Stock;
+    JMP CompPass;
+FaltaCaracteres:
+
+
 
 
 
@@ -293,7 +314,7 @@ RotinaErro:
     PUSH R0;
     PUSH R1;
     PUSH R2;
-    MOV R0, MenuErro;
+    MOV R0, R3;
 Erro:
     CALL MostraDisplay;
     CALL LimpaPerifericos;
