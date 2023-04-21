@@ -124,9 +124,9 @@ Place 2280H;
 StockAutent:
     String "---- Stock -----";
     String "----------------";
-    String "    Introduza   ";
-    String "     Password   ";
-    String "                ";
+    String "   Introduza    ";
+    String "    Password    ";
+    String "   _ _ _ _ _    ";
     String "1) Confirmar    ";
     String "4) Voltar       ";
 
