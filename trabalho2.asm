@@ -1,12 +1,17 @@
 ;periférico de entrada
-Opcao EQU 280H;
-OK EQU 290H;
+PE EQU 280H;
+CaracterPassWrite EQU 2AH;
 
-;SP EQU 0F00H fica nesta posição
+;SP EQU  fica no final da memória
 
 ;display (periférico de saída)
 DisplayBegin EQU 200H;
 DisplayEnd EQu 270H;
+
+;PassWord Stock
+Place 0F00H; 
+Password:
+    String "#Ac23";
 
 ;lista de moedas e quantidades das mesma na máquina
 Place 0F50H;
@@ -119,7 +124,7 @@ StockAutent:
     String "----------------";
     String "    Introduza   ";
     String "     Password   ";
-    String "                ";
+    String "    _ _ _ _ _   ";
     String "1) Confirmar    ";
     String "4) Voltar       ";
 
@@ -162,7 +167,7 @@ MenuErro:
     String "                ";
     String "                ";
     String "    ATENCAO     ";
-    String "     OPCAO      ";
+    String "     PE      ";
     String "    ERRADA      ";
     String "                ";
     String "                ";
@@ -183,14 +188,14 @@ MenuInicial:
     CALL MostraDisplay;
     CALL LimpaPerifericos;
 LeOInical:    
-    MOV R2, Opcao;
+    MOV R2, PE;
     MOVB R1, [R2];
     CMP R1, 0; verifica se foi introduzido alguma opção
     JEQ LeOInical;
     CMP R1, 1; verifica se a opção selecionada foi a dos produtos
     JEQ MenuProdCategoria;
-    ;CMP R1,OStock;
-    ;JEQ StockAutenticacao;
+    CMP R1,2;
+    JEQ StockAutenticacao;
     CALL RotinaErro; caso introduza alguma opção não existente é chamado um erro
     JMP MenuInicial;
 
@@ -202,7 +207,7 @@ MenuProdCategoria:
     CALL MostraDisplay;
     CALL LimpaPerifericos;
 LeOpProdutos:
-    MOV R2, Opcao;
+    MOV R2, PE;
     MOVB R1, [R2];
     CMP R1, 0; verifica se foi introduzido alguma opção
     JEQ LeOpProdutos;
@@ -227,7 +232,7 @@ MenuOpcBS:
     CALL MostraDisplay;
     CALL LimpaPerifericos;
 LeOpcBS:
-    MOV R3, Opcao;
+    MOV R3, PE;
     MOVB R2, [R3];
     CMP R2, 0; verifica se foi introduzido alguma opção
     JEQ LeOpcBS; 
@@ -250,6 +255,18 @@ IrPagamento:
     ; verifica se existe esse produto no stock
     JMP IrPagamento;so pa resolver problemas resolver depois
 
+
+;-----------------------------
+; Stock Autenticação
+;-----------------------------
+StockAutenticacao:
+    MOV R0, StockAutent;
+    CALL MostraDisplay;
+LePass:
+    CALL LimpaPerifericos;
+
+
+
 ;--------------------------
 ;  Rotina Erro
 ;--------------------------
@@ -262,7 +279,7 @@ Erro:
     CALL MostraDisplay;
     CALL LimpaPerifericos;
 CiclErro:
-    MOV R1, OK;
+    MOV R1, PE;
     MOVB R2, [R1]; R2 = ao byte menos significativo da memoria de endereço R1
     CMP R2, 0; verifica se OK está ativo, igual a 1
     JEQ CiclErro;
@@ -304,7 +321,7 @@ LimpaPerifericos:
     PUSH R0;
     PUSH R1;
     PUSH R2;
-    MOV R0, Opcao;
+    MOV R0, PE;
     MOV R1, OK;
     MOV R2, 0;
     MOVB [R0], R2;
