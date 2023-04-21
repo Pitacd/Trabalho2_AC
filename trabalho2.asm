@@ -174,6 +174,26 @@ MenuErro:
     String "                ";
     String "                ";
 
+Place 2500H;
+MenuFaltaCaract:
+    String "                ";
+    String "                ";
+    String "     ATENCAO    ";
+    String "     FALTAM     ";
+    String "   CARACTERES   ";
+    String "                ";
+    String "                ";
+
+Place 2580H;
+MenuPasswordErrada:
+    String "                ";
+    String "                ";
+    String "     ATENCAO    ";
+    String "    PASSWORD    ";
+    String "    INCORRETA   ";
+    String "                ";
+    String "                ";
+
 
 ;Primeira instrução
 Place 0000H;
@@ -302,6 +322,13 @@ CompPass:
     JGE Stock;
     JMP CompPass;
 FaltaCaracteres:
+    MOV R3, MenuFaltaCaract;
+    CALL RotinaErro;
+    JMP ProxCaracter;
+PasswordErrada:
+    MOV R3, MenuFaltaCaract;
+    CALL RotinaErro;
+    JMP StockAutenticacao;
 
 
 
