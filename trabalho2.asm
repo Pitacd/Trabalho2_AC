@@ -312,10 +312,12 @@ VerifPass:
     MOV R0, 0;
 CompPass:
     MOV R1, UserPassword;
-    ADD R1, R0;
     MOV R2, Password;
+    ADD R1, R0;
     ADD R2, R0;
-    CMP R1, R2;
+    MOVB R3, [R1];
+    MOVB R4, [R2];
+    CMP R3, R4;
     JNE PasswordErrada;
     ADD R0, 1;
     CMP R0, 5;
@@ -326,7 +328,7 @@ FaltaCaracteres:
     CALL RotinaErro;
     JMP ProxCaracter;
 PasswordErrada:
-    MOV R3, MenuFaltaCaract;
+    MOV R3, MenuPasswordErrada;
     CALL RotinaErro;
     JMP StockAutenticacao;
 Stock:
