@@ -1,13 +1,14 @@
 ;periférico de entrada
 PE EQU 280H;
-CaracterPassWrite EQU 42;
-PosCartWrite EQU 245H;
+
+;password inserida pelo utilizador
+UserPassword EQU 300H;
 
 ;SP EQU  fica no final da memória
 
 ;display (periférico de saída)
 DisplayBegin EQU 200H;
-DisplayEnd EQu 270H;
+DisplayEnd EQU 270H;
 
 ;PassWord Stock
 Place 0F00H; 
@@ -125,7 +126,7 @@ StockAutent:
     String "----------------";
     String "    Introduza   ";
     String "     Password   ";
-    String "    _ _ _ _ _   ";
+    String "                ";
     String "1) Confirmar    ";
     String "4) Voltar       ";
 
@@ -262,41 +263,28 @@ IrPagamento:
 ;-----------------------------
 StockAutenticacao:
     MOV R0, StockAutent;
-    MOV R1, 0; guarda em R4 o nº de caracteres preenchidos
+    MOV R1, 0; guarda em R1 o nº de caracteres preenchidos
     CALL MostraDisplay;
 ProxCaracter:
     CALL LimpaPerifericos;
 LePass:
     MOV R3, PE;
     MOVB R2, [R3];
-    CMP R2, 0;
+    CMP R2, 0; verifica se foi introduzido algo
     JEQ LePass;
-    ;CMP R2, 1;
+    CMP R2, 1; verifica se o utilizador quer confirmar a palavra passe
     ;JEQ VerifPass;
-    CMP R2, 4;
+    CMP R2, 4; verifica se o utilizador quer voltar para a pagina inicial
     JEQ MenuInicial;
-    CALL CaracterWrite;
-    ;CALL GuardaCaract;
+    CMP R1, 5; verificar se o utilizador já inseriu 5 caracteres
+    JGE ProxCaracter;
+    MOV R3, UserPassword; guarda em R3 a posição da password inserida pelo utilizador
+    ADD R3, R1; «posição a guardar o caracter inserido através do nº inserido de carateres
+    MOVB [R3], R2; guarda o valor o caracter inserido pelo utilizador na memória
+    ADD R1, 1; incrementa em 1 o nº de caracteres inseridos
     JMP ProxCaracter;
 
-CaracterWrite:
-    PUSH R0;
-    PUSH R2;
-    PUSH R3;
-    CMP R1, 5;
-    JGE FimCarWrit;
-    MOV R0, R1;
-    SHL R0, 1;
-    MOV R2, PosCartWrite;
-    ADD R2, R0;
-    MOV R3, CaracterPassWrite;
-    MOV [R2], R3;
-FimCarWrit:
-    POP R3;
-    POP R2;
-    POP R0;
-    RET;
-    
+
 
 ;--------------------------
 ;  Rotina Erro
