@@ -319,12 +319,12 @@ CompPass:
     MOV R2, Password;
     ADD R1, R0;
     ADD R2, R0;
-    MOVB R3, [R1];
-    MOVB R4, [R2];
-    CMP R3, R4;
+    MOVB R3, [R1]; caracter na posicao i da password inserida pelo utilizador
+    MOVB R4, [R2]; caracter na posicao i da password 
+    CMP R3, R4; comparação do caracter na posição i da password com o da password inserida pelo utilizador
     JNE PasswordErrada;
-    ADD R0, 1;
-    CMP R0, 5;
+    ADD R0, 1; incrementação do i
+    CMP R0, 5; verificar se já se percorreu todos os caracteres 
     JGE Stock;
     JMP CompPass;
 
