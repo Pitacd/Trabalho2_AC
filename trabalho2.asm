@@ -356,7 +356,14 @@ Stock:
 
 
 
-
+AddCaractMenu:
+    PUSH R0;
+    PUSH R2;
+    PUSH R3;
+    MOV R0, 0;
+CicloAddC:
+    ;MOV R2,
+  
 ;--------------------------
 ;  Rotina Erro
 ;--------------------------
