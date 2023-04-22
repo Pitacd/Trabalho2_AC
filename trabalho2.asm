@@ -523,6 +523,33 @@ CalculoPos:
     POP R0;
     RET;
 
+;-----------------------------
+; Stock Autenticação
+;-----------------------------
+StockAutenticacao:
+    MOV R0, StockAutent;
+    MOV R1, 0; guarda em R1 o nº de caracteres preenchidos
+ProxCaracterPass:
+    CALL MostraDisplay;
+    CALL LimpaPerifericos;
+LePass:
+    CALL AddCaractMenu;
+    MOV R3, PE;
+    MOVB R2, [R3];
+    CMP R2, 0; verifica se foi introduzido algo
+    JEQ LePass;
+    CMP R2, 1; verifica se o utilizador quer confirmar a palavra passe
+    JEQ VerifPass;
+    CMP R2, 4; verifica se o utilizador quer voltar para a pagina inicial
+    JEQ CheckPointMenuInicial;
+    CMP R1, 5; verificar se o utilizador já inseriu 5 caracteres
+    JGE ProxCaracterPass;
+    MOV R3, UserPassword; guarda em R3 a posição da password inserida pelo utilizador
+    ADD R3, R1; posição a guardar o caracter inserido através do nº inserido de carateres
+    MOVB [R3], R2; guarda o valor o caracter inserido pelo utilizador na memória
+    ADD R1, 1; incrementa em 1 o nº de caracteres inseridos
+    JMP ProxCaracterPass;
+
 ;--------------------------
 ;  DarDinheiro
 ;--------------------------
@@ -564,33 +591,6 @@ ProxMoeda:
     POP R0;
     RET;
     
-;-----------------------------
-; Stock Autenticação
-;-----------------------------
-StockAutenticacao:
-    MOV R0, StockAutent;
-    MOV R1, 0; guarda em R1 o nº de caracteres preenchidos
-ProxCaracterPass:
-    CALL MostraDisplay;
-    CALL LimpaPerifericos;
-LePass:
-    CALL AddCaractMenu;
-    MOV R3, PE;
-    MOVB R2, [R3];
-    CMP R2, 0; verifica se foi introduzido algo
-    JEQ LePass;
-    CMP R2, 1; verifica se o utilizador quer confirmar a palavra passe
-    JEQ VerifPass;
-    CMP R2, 4; verifica se o utilizador quer voltar para a pagina inicial
-    JEQ CheckPointMenuInicial;
-    CMP R1, 5; verificar se o utilizador já inseriu 5 caracteres
-    JGE ProxCaracterPass;
-    MOV R3, UserPassword; guarda em R3 a posição da password inserida pelo utilizador
-    ADD R3, R1; posição a guardar o caracter inserido através do nº inserido de carateres
-    MOVB [R3], R2; guarda o valor o caracter inserido pelo utilizador na memória
-    ADD R1, 1; incrementa em 1 o nº de caracteres inseridos
-    JMP ProxCaracterPass;
-
 ;--------------------------
 ; Quantidade Produto/Moedas
 ;--------------------------
