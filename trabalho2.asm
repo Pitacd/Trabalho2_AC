@@ -1,12 +1,16 @@
 ;periférico de entrada
 PE EQU 280H;
 
+;dinheiro inserido pelo utilizador
+UserMoney EQU 0;
+;posição no display para representar o dinheiro inserido
+ShowMoneyInsert EQU 219H;
+
 ;password inserida pelo utilizador
 UserPassword EQU 300H;
 
 ;simbolo de caracter escrito
 CaractWrite EQU 2AH;
-
 ;posição onde se encontra o 1º caracter q será escrito
 PosCaractWrite EQU 243H;
 
@@ -48,13 +52,13 @@ Place 1000H;
 ListaBebidas:
     String "Agua    ";
     Word 100; preço
-    Word 0; quantidade
+    Word 3; quantidade
     String "CocaCola";
     Word 250; preço
-    Word 0; quantidade
+    Word 4; quantidade
     String "Fanta   ";
     Word 220; preço
-    Word 0; quantidade
+    Word 5; quantidade
 
 ;lista de snacks com os respectivos preços e quantidades na máquina
 Place 1500H;
@@ -116,7 +120,7 @@ EscSnacks:
 
 ;interface do talão
 Place 2200H;
-Talao:
+MenuTalao:
     String "----------------";
     String "     TALAO      ";
     String "----------------";
@@ -163,7 +167,7 @@ Place 2400H;
 EscPagamento:
     String "--- Pagamento---";
     String "Inserido:       ";
-    String "Opcoes:         ";
+    String "                ";
     String "1) 0.10  2) 0.20";
     String "3) 0.50  4) 1.00";
     String "5) 2.00  6) 5.00";
@@ -201,6 +205,16 @@ MenuPasswordErrada:
     String "                ";
 
 
+Place 2600H;
+MenuProdFalta:
+    String "                ";
+    String "                ";
+    String "     ATENCAO    ";
+    String "     PRODUTO    ";
+    String "    EM FALTA    ";
+    String "                ";
+    String "                ";
+
 ;Primeira instrução
 Place 0000H;
 Inicio:
@@ -223,7 +237,7 @@ LeOInical:
     CMP R1, 1; verifica se a opção selecionada foi a dos produtos
     JEQ MenuProdCategoria;
     CMP R1,2;
-    JEQ StockAutenticacao;
+    JEQ CheckPointStockAutenticacao;
     MOV R3, MenuErro;
     CALL RotinaErro; caso introduza alguma opção não existente é chamado um erro
     JMP MenuInicial;
@@ -238,14 +252,14 @@ MenuProdCategoria:
 LeOpProdutos:
     MOV R2, PE;
     MOVB R1, [R2];
-    CMP R1, 0; verifica se foi introduzido alguma opção
-    JEQ LeOpProdutos;
-    CMP R1, 1; verifica se a opção selecionada foi a das bebidas
-    JEQ MenuBebidas;
-    CMP R1, 2; verifica se a opção selecionada foi a dos snacks
-    JEQ MenuSnacks;
+    CMP R1, 0;
+    JEQ LeOpProdutos; verifica se foi introduzido alguma opção
+    JLT OpErrada; verifica se a opção é um valor negativo
+    CMP R1, 2; 
+    JLE MenuProd; verifica se a opção selecionada foi a das bebidas/snacks
     CMP R1, 7; verifica se a operação foi cancelada
     JEQ MenuInicial;
+OpErrada:
     MOV R3, MenuErro;
     CALL RotinaErro; caso introduza alguma opção não existente é chamado um erro
     JMP MenuProdCategoria;
@@ -253,6 +267,9 @@ LeOpProdutos:
 ;------------------------------
 ;   Menu das Bebidas / Snacks
 ;------------------------------
+MenuProd:
+    CMP R1,1;
+    JNE MenuSnacks;
 MenuBebidas:
     MOV R0, EscBebidas;
     JMP MenuOpcBS;
@@ -267,145 +284,206 @@ LeOpcBS:
     CMP R2, 0; verifica se foi introduzido alguma opção
     JEQ LeOpcBS; 
     CMP R2, 1; verifica se foi selecionada a 1º opção
-    JEQ IrPagamento;
+    JEQ VerifQtProd;
     CMP R2, 2; verifica se foi selecionada a 2º opção
-    JEQ IrPagamento;
+    JEQ VerifQtProd;
     CMP R2, 3; verifica se foi selecionada a 3º opção
-    JEQ IrPagamento;
+    JEQ VerifQtProd;
     CMP R2, 7; verifica se a operação foi cancelada
     JEQ MenuProdCategoria;
     MOV R3, MenuErro;
     CALL RotinaErro; caso introduza alguma opção não existente é chamado um erro
     JMP MenuOpcBS;
 
-;-------------------------------
-;     Pagamento
-;-------------------------------
-IrPagamento:
-    MOV R5, 12; R5 é o nº de bytes entre os elementos da lista de bebidas/snacks
-    SUB R2, 1; R2 é a opção (1,2,3), que na lista corresponde ao (0,1,2) respetivamente
-    MUL R5, R2;
-    ADD R4, R5; R4 é o endereço de memória do valor a pagar
-    MOV R5,[R4]; R5 é o valor a pagar
-    ; verifica se existe esse produto no stock:
-    ADD R4, 2;
-    MOV R7, [R4];
-    CMP R7, 0;
-    JNE TemProduto; Apresenta não existe esse produto
-    SUB R4, 2;
+;---------------------------------------------
+;  Verificar se o produto existe no stock
+;---------------------------------------------
+VerifQtProd:
+    CALL QtProd_Moeda;
+    CMP R5, 0;
+    JGT TemProduto;
+    MOV R3, MenuProdFalta;
     CALL RotinaErro;
     CMP R1, 1;
     JEQ MenuBebidas;
     JMP MenuSnacks;
 TemProduto:
-    SUB R4, 2;
-    MOV R6, 0; inicializa o inserido a 0
     JMP Pagamento;
 
+;--------------------------------
+;     Pagamento
+;--------------------------------
 Pagamento:
-    ; R0 era o display ||| mudou o display
-    ; R1 é 1->bebidas 2->snacks
-    ; R2 era a opção ||| continua sendo esse propósito
-    ; R3 era o endereço de memoria da opção ||| continua sendo esse propósito
-    ; R4 era o endereço de memória do valor a pagar ||| não usado
-    ; R5 é o valor a pagar
-    ; R6 vai ser o inserido, foi inicializado a 0 antes do Pagamento
-    ; R7 vai ser auxiliar
-    ; R8 vai ser usado para o endereço de onde vai ser colocado o numero (tem de ter 5 espaços livres apartir desse endereço)
-    ; R9 endereço da quantidade da respectiva moeda
-
     MOV R0, EscPagamento;
+    CALL PrecoProd_Moeda; guarda em R5 preço do produto a pagar
+    MOV R6, UserMoney; dinheiro inserido pelo utilizador
     CALL MostraDisplay;
+VerifMoneyInsert:
     CALL LimpaPerifericos;
-    MOV R8, 219H;
-    CALL MostraNumero;
-    ;verifica se ja inserio o suficiente:
-    CMP R6, R5;
-    JGE MenuTalao;
+    CALL MostraMoneyInsert;  
+    CMP R6, R5; verifica se já inseriu dinheiro suficiente
+    JGE Talao;
 LeOpPagamento:
-    MOV R3, Opcao;
+    MOV R3, PE;
     MOVB R2, [R3];
     CMP R2, 0;
     JEQ LeOpPagamento;
-;Op1
-    CMP R2, 1;
-    JNE Op2;
-    MOV R7, 10;
-    ADD R6, R7;
-    ;O stock de 10cents aumenta em 1;
-    MOV R9, 50AH;
-    MOV R7, [R9];
-    ADD R7, 1;
-    MOV [R9], R7;
-    JMP Pagamento;
-Op2:
-    CMP R2, 2;
-    JNE Op3;
-    MOV R7, 20;
-    ADD R6, R7;
-    ;O stock de 20cents aumenta em 1;
-    MOV R9, 516H; 50AH+12=516H
-    MOV R7, [R9];
-    ADD R7, 1;
-    MOV [R9], R7;
-    JMP Pagamento;
-Op3:
-    CMP R2 ,3;
-    JNE Op4;
-    MOV R7, 50;
-    ADD R6, R7;
-    ;O stock de 50cents aumenta em 1;
-    MOV R9, 522H;  516H+12=522H;
-    MOV R7, [R9];
-    ADD R7, 1;
-    MOV [R9], R7;
-    JMP Pagamento;
-Op4:
-    CMP R2 ,4;
-    JNE Op5;
-    MOV R7, 100;
-    ADD R6, R7;
-    ;O stock de 1euro aumenta em 1;
-    MOV R9, 52EH; 522H+12=52EH;
-    MOV R7, [R9];
-    ADD R7, 1;
-    MOV [R9], R7;
-    JMP Pagamento;
-Op5:
-    CMP R2 ,5;
-    JNE Op6;
-    MOV R7, 200;
-    ADD R6, R7;
-    ;O stock de 2euros aumenta em 1;
-    MOV R9, 53AH; 52EH+12=53AH;
-    MOV R7, [R9];
-    ADD R7, 1;
-    MOV [R9], R7;
-    JMP Pagamento;
-Op6:
-    CMP R2 ,6;
-    JNE Op7;
-    MOV R7, 500;
-    ADD R6, R7;
-    ;O stock de 5euros aumenta em 1;
-    MOV R9, 546H; 53AH+12=546H;
-    MOV R7, [R9];
-    ADD R7, 1;
-    MOV [R9], R7;
-    JMP Pagamento;
-Op7:
+    JLT OpErro;
+    CMP R2, 6;
+    JLE InserirMoeda;
     CMP R2, 7;
-    JNE OpNULL;
-    CALL DarDinheiro ; doq ele inseriu, R6
-    CMP R1, 1;
-    JEQ MenuBebidas;
-    CMP R1, 2;
-    JEQ MenuSnacks;
-OpNULL:
+    JNE OpErro;
+    JMP MenuProd;
+InserirMoeda:
+    CALL AddMoeda;
+    JMP VerifMoneyInsert;
+OpErro:
+    MOV R3, MenuErro;
     CALL RotinaErro;
-    JMP Pagamento;
+    JMP VerifMoneyInsert;
 
+;--------------------------
+;  CheckPointMenuInicial
+;--------------------------
+CheckPointMenuInicial:
+    JMP MenuInicial;
+    
+;--------------------------
+;  CheckPointStockAutenticacao
+;--------------------------
+CheckPointStockAutenticacao:
+    JMP StockAutenticacao;
 
+;-----------------------------
+;  Mostra Dinheiro Inserido
+;-----------------------------
+MostraMoneyInsert:  
+    PUSH R0;
+    PUSH R1;
+    PUSH R2;
+    PUSH R3;
+    PUSH R4;
+    PUSH R5;
+    PUSH R6;
+    MOV R0, ShowMoneyInsert; 
+    MOV R1, 10; valor pelo qual vou dividir para obter cada número
+    ADD R0, 4; posição do caracter a preencher
+    MOV R2, 0; R2 = nº de caracteres já preenchidos
+Ponto:
+    CMP R2, 2;
+    JNE Numero;
+    MOV R5, 2EH; R5 = "."
+    MOVB [R0], R5; escreve o ponto no display
+    SUB R0, 1; proxima posição do display a preencher
+    ADD R2, 1; incrementa o nº de caracter preenchidos
+Numero:
+    MOV R3, R6; cópia do quociende/valor inserido para R3
+    MOD R3, R1; calculo do resto da divisão por 10
+    DIV R6, R1; calculo quociente da divisão inteira por 10
+    MOV R4, 48;
+    ADD R4, R3; passar o número para representação ASCII
+    MOVB [R0], R4; colocar o número no display
+    SUB R0, 1; proxima posição do display a preencher
+    ADD R2, 1; incrementa o nº de caracter preenchidos
+    CMP R2, 4;
+    JLT Ponto;
+FimMostra:
+    POP R6;
+    POP R5;
+    POP R4;
+    POP R3;
+    POP R2;
+    POP R1;
+    POP R0;
+    RET;
+
+;------------------------------------------------------
+; Adicionar moeda máquino e incrementar valor inserida
+;-----------------------------------------------------
+AddMoeda:
+    PUSH R0;
+    PUSH R1;
+    PUSH R3;
+    PUSH R4;
+    MOV R1, 3; para indicar que iremos utilizar a lista de moedas
+    CALL PosProd_Moeda; guarda em R4 a posição da moeda na lista de moedas
+    MOV R0, 8;
+    ADD R4, R0; posição onde está o valor da moeda
+    MOV R1, [R4];
+    ADD R6, R1;
+    ADD R4, 2; posição onde está a quantidade da moeda
+    MOV R1, [R4]; 
+    ADD R1, 1; incrementa a quantidade dessa moeda em 1
+    MOV [R4], R1; 
+    POP R4;
+    POP R3;
+    POP R1;
+    POP R0;
+    RET;
+
+;--------------------------
+;    Talão
+;--------------------------
+Talao:
+    MOV R0, MenuTalao;
+    CALL MostraDisplay;
+    CALL LimpaPerifericos;
+    JMP Talao;
+
+;------------------------------------------
+; Posição produto na lista bebida/snacks/moedas
+;------------------------------------------
+;R4 guarda a posição da produto na lista bebida/snack/moedas
+PosProd_Moeda:
+    PUSH R0;
+    PUSH R5;
+    CMP R1, 1; verifica se queremos verificar a quantidade do produto na lista de bebidas
+    JEQ PosBebida; 
+    CMP R1, 2; verifica se queremos verificar a quantidade do produto na lista de snacks
+    JEQ PosSnack;
+PosMoeda:
+    MOV R4, ListaMoedas;
+    JMP CalculoPos; 
+PosBebida:
+    MOV R4,ListaBebidas;
+    JMP CalculoPos; 
+PosSnack:
+    MOV R4, ListaSnacks;
+CalculoPos:
+    MOV R0, 12; R0 é o nº de bytes entre os elementos da lista de bebidas/snacks
+    MOV R5, R2; cópia de R2, escolha da opção da bebida/snack
+    SUB R5, 1; R4 é a posição do elemento nessa lista, dada através da escolha da opção da bebida/snack
+    MUL R0, R5; 
+    ADD R4, R0; R3 contem o endereço onde se encontra a bebida/snack na lista, apontando para o seu nome 
+    POP R5;
+    POP R0;
+    RET;
+
+;--------------------------
+; Quantidade Produto/Moedas
+;--------------------------
+;R5 guardar quantidade de produto ou moeda
+QtProd_Moeda:
+    PUSH R4; 
+    CALL PosProd_Moeda;
+    MOV R5, 10; posição a adicionar à posição do produto na lista para chegar na quantidade
+    ADD R4, R5;
+    MOV R5, [R4]; R5 guarda a quantidade do produto
+    POP R4;
+    RET;
+
+;---------------------
+; Preço Produto/Moedas
+;---------------------
+;R5 guardar o preço do produto ou moeda
+PrecoProd_Moeda:
+    PUSH R4; 
+    CALL PosProd_Moeda;
+    MOV R5, 8; posição a adicionar à posição do produto na lista para chegar no preço
+    ADD R4, R5;
+    MOV R5, [R4]; R4 guarda a preço do produto
+    POP R4;
+    RET;
 
 ;-----------------------------
 ; Stock Autenticação
@@ -413,7 +491,7 @@ OpNULL:
 StockAutenticacao:
     MOV R0, StockAutent;
     MOV R1, 0; guarda em R1 o nº de caracteres preenchidos
-ProxCaracter:
+ProxCaracterPass:
     CALL MostraDisplay;
     CALL LimpaPerifericos;
 LePass:
@@ -425,14 +503,14 @@ LePass:
     CMP R2, 1; verifica se o utilizador quer confirmar a palavra passe
     JEQ VerifPass;
     CMP R2, 4; verifica se o utilizador quer voltar para a pagina inicial
-    JEQ MenuInicial;
+    JEQ CheckPointMenuInicial;
     CMP R1, 5; verificar se o utilizador já inseriu 5 caracteres
-    JGE ProxCaracter;
+    JGE ProxCaracterPass;
     MOV R3, UserPassword; guarda em R3 a posição da password inserida pelo utilizador
     ADD R3, R1; posição a guardar o caracter inserido através do nº inserido de carateres
     MOVB [R3], R2; guarda o valor o caracter inserido pelo utilizador na memória
     ADD R1, 1; incrementa em 1 o nº de caracteres inseridos
-    JMP ProxCaracter;
+    JMP ProxCaracterPass;
 
 ;---------------------------------
 ; Confirmar Password Inserida
@@ -461,7 +539,7 @@ CompPass:
 FaltaCaracteres:
     MOV R3, MenuFaltaCaract;
     CALL RotinaErro;
-    JMP ProxCaracter;
+    JMP ProxCaracterPass;
 
 ;-----------------------------
 ;   Password Incorreta
@@ -479,7 +557,6 @@ Stock:
     CALL MostraDisplay;
     CALL LimpaPerifericos;
     JMP Stock;
-
 
 ;------------------------------------------------------------------------------
 ;  Colocar * em vez de _ para o utilizador verificar que o caracter foi inserido
