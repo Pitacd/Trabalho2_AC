@@ -201,7 +201,6 @@ MenuPasswordErrada:
     String "                ";
     String "                ";
 
-
 Place 2600H;
 MenuProdFalta:
     String "                ";
@@ -211,6 +210,16 @@ MenuProdFalta:
     String "    EM FALTA    ";
     String "                ";
     String "                ";
+
+Place 2680H;
+MenuFaltaDinheiro:
+    String "                ";
+    String "     ATENCAO    ";
+    String " FALTA DINHEIRO ";
+    String "   NA MAQUINA   ";
+    String "                ";
+    String "Abortar:        ";
+    String "1) S   2) N     ";
 
 ;Primeira instrução
 Place 0000H;
@@ -319,7 +328,7 @@ VerifMoneyInsert:
     CALL LimpaPerifericos;
     MOV R7, ShowMoneyPagamento;
     MOV R8, R6;
-    CALL MostraMoney;  
+    CALL MostraDinheiro;  
     CMP R6, R5; verifica se já inseriu dinheiro suficiente
     JGE Talao;
 LeOpPagamento:
@@ -345,7 +354,7 @@ OpErro:
 ;-----------------------------
 ;  Mostra Dinheiro Inserido
 ;-----------------------------
-MostraMoney:  
+MostraDinheiro:  
     PUSH R0;
     PUSH R1;
     PUSH R2;
@@ -435,18 +444,18 @@ MostraValorPagar:
     MOV R8, R5; 
     MOV R9, 230H;
     CALL MostraNome;
-    CALL MostraMoney;
+    CALL MostraDinheiro;
 MostraValorInserido:
     MOV R9, 16;
     ADD R7, R9;
     MOV R8, R6; 
-    CALL MostraMoney;
+    CALL MostraDinheiro;
 MostraValorTroco:
     ADD R7, R9;
     MOV R9, R6;
     SUB R9, R5;
     MOV R8, R9;
-    CALL MostraMoney;
+    CALL MostraDinheiro;
 OpMenuTalao:
     MOV R4, PE;
     MOVB R3, [R4];
@@ -585,7 +594,7 @@ ProxMoeda:
     JGE DarDinheiroCiclo;
     CMP R6, 0;
     JEQ FimDarDinheiro; 
-    MOV R3, MenuErro;n tinha moedas para dar a ele, dai ve se ele aceita a mesma; isto nunca vai acontecer qd tiver na opção 7(Voltar) do Bedidas/Snacks
+    MOV R3, MenuFaltaDinheiro;n tinha moedas para dar a ele, dai ve se ele aceita a mesma; isto nunca vai acontecer qd tiver na opção 7(Voltar) do Bedidas/Snacks
     CALL RotinaErro;
 FimDarDinheiro:
     POP R5;
