@@ -4,7 +4,8 @@ PE EQU 280H;
 ;dinheiro inserido pelo utilizador
 UserMoney EQU 0;
 ;posição no display para representar o dinheiro inserido
-ShowMoneyInsert EQU 219H;
+ShowMoneyPagamento EQU 219H;
+ShowMoneyTalao EQU 23BH;
 
 ;password inserida pelo utilizador
 UserPassword EQU 300H;
@@ -13,8 +14,6 @@ UserPassword EQU 300H;
 CaractWrite EQU 2AH;
 ;posição onde se encontra o 1º caracter q será escrito
 PosCaractWrite EQU 243H;
-
-;SP EQU  fica no final da memória
 
 ;display (periférico de saída)
 DisplayBegin EQU 200H;
@@ -320,20 +319,22 @@ Pagamento:
     CALL MostraDisplay;
 VerifMoneyInsert:
     CALL LimpaPerifericos;
-    CALL MostraMoneyInsert;  
+    MOV R7, ShowMoneyPagamento;
+    MOV R8, R6;
+    CALL MostraMoney;  
     CMP R6, R5; verifica se já inseriu dinheiro suficiente
     JGE Talao;
 LeOpPagamento:
-    MOV R3, PE;
-    MOVB R2, [R3];
-    CMP R2, 0;
+    MOV R4, PE;
+    MOVB R3, [R4];
+    CMP R3, 0;
     JEQ LeOpPagamento;
     JLT OpErro;
-    CMP R2, 6;
+    CMP R3, 6;
     JLE InserirMoeda;
-    CMP R2, 7;
+    CMP R3, 7;
     JNE OpErro;
-    JMP MenuProd;
+    JMP DarDinheiro;
 InserirMoeda:
     CALL AddMoeda;
     JMP VerifMoneyInsert;
@@ -342,22 +343,10 @@ OpErro:
     CALL RotinaErro;
     JMP VerifMoneyInsert;
 
-;--------------------------
-;  CheckPointMenuInicial
-;--------------------------
-CheckPointMenuInicial:
-    JMP MenuInicial;
-    
-;--------------------------
-;  CheckPointStockAutenticacao
-;--------------------------
-CheckPointStockAutenticacao:
-    JMP StockAutenticacao;
-
 ;-----------------------------
 ;  Mostra Dinheiro Inserido
 ;-----------------------------
-MostraMoneyInsert:  
+MostraMoney:  
     PUSH R0;
     PUSH R1;
     PUSH R2;
@@ -365,7 +354,8 @@ MostraMoneyInsert:
     PUSH R4;
     PUSH R5;
     PUSH R6;
-    MOV R0, ShowMoneyInsert; 
+    MOV R0, R7; posição onde colocaremos o valor a mostrar no display
+    MOV R6, R8; valor a representar
     MOV R1, 10; valor pelo qual vou dividir para obter cada número
     ADD R0, 4; posição do caracter a preencher
     MOV R2, 0; R2 = nº de caracteres já preenchidos
@@ -396,6 +386,19 @@ FimMostra:
     POP R1;
     POP R0;
     RET;
+
+;--------------------------
+;  CheckPointMenuInicial
+;--------------------------
+CheckPointMenuInicial:
+    JMP MenuInicial;
+    
+;--------------------------
+;  CheckPointStockAutenticacao
+;--------------------------
+CheckPointStockAutenticacao:
+    JMP StockAutenticacao;
+
 
 ;------------------------------------------------------
 ; Adicionar moeda máquino e incrementar valor inserida
@@ -428,7 +431,61 @@ Talao:
     MOV R0, MenuTalao;
     CALL MostraDisplay;
     CALL LimpaPerifericos;
-    JMP Talao;
+MostraValorPagar:
+    MOV R7, ShowMoneyTalao;
+    MOV R8, R5; 
+    MOV R9, 230H;
+    CALL MostraNome;
+    CALL MostraMoney;
+MostraValorInserido:
+    MOV R9, 16;
+    ADD R7, R9;
+    MOV R8, R6; 
+    CALL MostraMoney;
+MostraValorTroco:
+    ADD R7, R9;
+    MOV R9, R6;
+    SUB R9, R5;
+    MOV R8, R9;
+    CALL MostraMoney;
+OpMenuTalao:
+    MOV R4, PE;
+    MOVB R3, [R4];
+    CMP R3, 0;
+    JEQ OpMenuTalao;
+    CMP R3, 1;
+    JEQ CheckPointMenuInicial;
+    JMP Talao; 
+
+;-----------------------
+;      Mostra Nome
+;-----------------------
+;R9 tem a posição na qual queremos começar a colocar o nome no display
+MostraNome:
+    PUSH R0;
+    PUSH R1;
+    PUSH R2;
+    PUSH R3;
+    PUSH R4;
+    CALL PosProd_Moeda; R4 = posição desse produto na sua lista
+    MOV R0, 0;
+    MOV R1, 8; R1 = tamanho dos nomes das bebidas ou snacks ou moedas
+CicloMostraN:
+    CMP R0, R1;
+    JGE FimCicloMostraN; 
+    MOV R2, [R4];
+    MOV [R9], R2;
+    ADD R0, 2;
+    ADD R4, 2;
+    ADD R9, 2;
+    JMP CicloMostraN;
+FimCicloMostraN:
+    POP R4;
+    POP R3;
+    POP R2;
+    POP R1;
+    POP R0;
+    RET;
 
 ;------------------------------------------
 ; Posição produto na lista bebida/snacks/moedas
@@ -436,12 +493,16 @@ Talao:
 ;R4 guarda a posição da produto na lista bebida/snack/moedas
 PosProd_Moeda:
     PUSH R0;
+    PUSH R1;
+    PUSH R2;
+    PUSH R3;
     PUSH R5;
     CMP R1, 1; verifica se queremos verificar a quantidade do produto na lista de bebidas
     JEQ PosBebida; 
     CMP R1, 2; verifica se queremos verificar a quantidade do produto na lista de snacks
     JEQ PosSnack;
 PosMoeda:
+    MOV R2, R3;
     MOV R4, ListaMoedas;
     JMP CalculoPos; 
 PosBebida:
@@ -456,35 +517,53 @@ CalculoPos:
     MUL R0, R5; 
     ADD R4, R0; R3 contem o endereço onde se encontra a bebida/snack na lista, apontando para o seu nome 
     POP R5;
+    POP R3;
+    POP R2;
+    POP R1;
     POP R0;
     RET;
 
 ;--------------------------
-; Quantidade Produto/Moedas
+;  DarDinheiro
 ;--------------------------
-;R5 guardar quantidade de produto ou moeda
-QtProd_Moeda:
-    PUSH R4; 
-    CALL PosProd_Moeda;
-    MOV R5, 10; posição a adicionar à posição do produto na lista para chegar na quantidade
-    ADD R4, R5;
-    MOV R5, [R4]; R5 guarda a quantidade do produto
-    POP R4;
-    RET;
+; R6 valor inserido
+DarDinheiro:
+    PUSH R0; é a ultima moeda
+    PUSH R1; quantidade de moedas
+    PUSH R3; endereço q vai diminuindo ate ser R0
+    PUSH R4; valor 12 (nº de bytes entre cada elemento)
+    PUSH R5; valor da moeda
 
-;---------------------
-; Preço Produto/Moedas
-;---------------------
-;R5 guardar o preço do produto ou moeda
-PrecoProd_Moeda:
-    PUSH R4; 
-    CALL PosProd_Moeda;
-    MOV R5, 8; posição a adicionar à posição do produto na lista para chegar no preço
-    ADD R4, R5;
-    MOV R5, [R4]; R4 guarda a preço do produto
+    MOV R0, 50AH;
+    MOV R3, 546H;
+    MOV R4, 12;
+DarDinheiroCiclo:
+    MOV R1, [R3];
+    CMP R6, R1;
+    JLT ProxMoeda; inserido<moeda    2.70<5 
+    ; inserido>=moeda  5>=5  6>=5  2.70>=2
+    CMP R1, 0;
+    JEQ ProxMoeda;
+    SUB R1, 1;
+    MOV [R3], R1;
+    SUB R3, 2;
+    MOV R5, [R3];
+    SUB R6, R5;
+    ADD R3, 2;
+    JMP DarDinheiroCiclo;
+ProxMoeda:
+    SUB R3, R4;
+    CMP R3, R0;
+    JGE DarDinheiroCiclo;
+    CMP R6, 0;
+    JNE RotinaErro; n tinha moedas para dar a ele, dai ve se ele aceita a mesma; isto nunca vai acontecer qd tiver na opção 7(Voltar) do Bedidas/Snacks
+    POP R5;
     POP R4;
+    POP R3;
+    POP R1;
+    POP R0;
     RET;
-
+    
 ;-----------------------------
 ; Stock Autenticação
 ;-----------------------------
@@ -511,6 +590,32 @@ LePass:
     MOVB [R3], R2; guarda o valor o caracter inserido pelo utilizador na memória
     ADD R1, 1; incrementa em 1 o nº de caracteres inseridos
     JMP ProxCaracterPass;
+
+;--------------------------
+; Quantidade Produto/Moedas
+;--------------------------
+;R5 guardar quantidade de produto ou moeda
+QtProd_Moeda:
+    PUSH R4; 
+    CALL PosProd_Moeda;
+    MOV R5, 10; posição a adicionar à posição do produto na lista para chegar na quantidade
+    ADD R4, R5;
+    MOV R5, [R4]; R5 guarda a quantidade do produto
+    POP R4;
+    RET;
+
+;---------------------
+; Preço Produto/Moedas
+;---------------------
+;R5 guardar o preço do produto ou moeda
+PrecoProd_Moeda:
+    PUSH R4; 
+    CALL PosProd_Moeda;
+    MOV R5, 8; posição a adicionar à posição do produto na lista para chegar no preço
+    ADD R4, R5;
+    MOV R5, [R4]; R4 guarda a preço do produto
+    POP R4;
+    RET;
 
 ;---------------------------------
 ; Confirmar Password Inserida
