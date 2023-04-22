@@ -620,10 +620,10 @@ FimDarDinheiro:
 ;R5 guardar quantidade de produto ou moeda
 QtProd_Moeda:
     PUSH R4; 
-    CALL PosProd_Moeda;
-    MOV R5, 10; posição a adicionar à posição do produto na lista para chegar na quantidade
-    ADD R4, R5;
-    MOV R5, [R4]; R5 guarda a quantidade do produto
+    CALL PosProd_Moeda; R4 = posição do elemento na lista bebida/snack/moedas 
+    MOV R5, 10; R5 = posição a adicionar à posição do elemento na lista para chegar na quantidade
+    ADD R4, R5; R4 = posição contem a quantidade do elemento
+    MOV R5, [R4]; R5 = quantidade do elemento
     POP R4;
     RET;
 
@@ -633,23 +633,24 @@ QtProd_Moeda:
 ;R5 guardar o preço do produto ou moeda
 PrecoProd_Moeda:
     PUSH R4; 
-    CALL PosProd_Moeda;
-    MOV R5, 8; posição a adicionar à posição do produto na lista para chegar no preço
-    ADD R4, R5;
-    MOV R5, [R4]; R4 guarda a preço do produto
+    CALL PosProd_Moeda; R4 = posição do elemento na lista bebida/snack/moedas 
+    MOV R5, 8; R5 = posição a adicionar à posição do elemento na lista para chegar no preço
+    ADD R4, R5; R4 = posição contem o preço do elemento
+    MOV R5, [R4]; R5 = quantidade do elemento
     POP R4;
     RET;
 
 ;---------------------------------
 ; Confirmar Password Inserida
 ;--------------------------------
+;R1 nº de carateres inseridos pelo utilizador
 VerifPass:
-    CMP R1, 5; verificar se o utilizador já inseriu 5 caracteres
-    JLT FaltaCaracteres;
+    CMP R1, 5; 
+    JLT FaltaCaracteres; verificar se o utilizador já inseriu 5 caracteres
     MOV R0, 0; R0 = i
 CompPass:
     MOV R1, UserPassword; R1 = posição da password inserida pelo utilizador
-    MOV R2, Password; R2 = posição da password
+    MOV R2, Password; R2 = posição da password correta
     ADD R1, R0; R1 = R1 + i
     ADD R2, R0; R2 = R2 + i
     MOVB R3, [R1]; R3 = caracter na posicao i da password inserida pelo utilizador
@@ -694,15 +695,15 @@ AddCaractMenu:
     PUSH R2;
     PUSH R3;
     PUSH R4;
-    MOV R0, 0; R0 = i = 0
-    MOV R2, PosCaractWrite; R2 = posição onde se encontra o 1º caracter q será escrito
+    MOV R0, 0; R0 = i 
+    MOV R2, PosCaractWrite; R2 = posição no display onde se encontra o 1º caracter q será escrito
     MOV R3, R1; R3 = nº de caracters escritos
     SHL R3, 1; R3 = 2 x R3
 CicloAddC:
     CMP R0, R3; verificar se ja todos os substitui _ por *, que representam os caracteres inseridos pelo utilizador  
     JGE FimAddCaract; 
-    MOV R4, CaractWrite; substituição de _ por *
-    MOVB [R2], R4;
+    MOV R4, CaractWrite; R4 = "*"
+    MOVB [R2], R4; substituição de _ por *
     ADD R0, 2; R0 = R0 + 2
     ADD R2, 2; R2 = R2 + 2
     JMP CicloAddC;
@@ -716,6 +717,7 @@ FimAddCaract:
 ;--------------------------
 ;  Rotina Erro
 ;--------------------------
+;R3 interface de erro que queremos mostrar
 RotinaErro:
     PUSH R0;
     PUSH R1;
@@ -739,6 +741,7 @@ CiclErro:
 ;------------------------
 ;   MostraDispla Display
 ;------------------------
+;R0 interface que queremos mostrar
 MostraDisplay:
     PUSH R1;
     PUSH R2;
@@ -766,9 +769,9 @@ Ciclo:
 LimpaPerifericos:
     PUSH R0;
     PUSH R1;
-    MOV R0, PE;
-    MOV R1, 0;
-    MOV [R0], R1;
+    MOV R0, PE; R0 = posição do periférico de entrada
+    MOV R1, 0; R1 = 0
+    MOV [R0], R1; R0 = 0
     POP R1;
     POP R0;
     RET;
