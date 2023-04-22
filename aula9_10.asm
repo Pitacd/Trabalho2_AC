@@ -1,209 +1,132 @@
-;periféricos
-ON_OFF EQU 1A0H;
-Opcao EQU 1B0H;
-OK EQU 1C0H;
-
-;display
-Display EQU 200H;
-DisplayEnd EQU 260H;
-CaracterVazio EQU 20H;
-
-MAlmoco EQU 1;opcao almoco
-MBebidas EQU 2;opcao bebidas
-MSandes EQU 2;opcao sandes
-MSopas EQU 2;opcao sopas
-
-MQuente EQU 2;opcao quente 
-MFrio EQU 2;opcao frio
-
-StackPointer EQU 6000H;
-
-Place 2000H;
-MenuInicio:
-    String "   Menu Inicio  ";
-    String "  1- Almoco     ";
-    String "  2- Bebidas    ";
-    String "  3- Sandes     ";
-    String "  4- Sopas      ";
-    String "                ";
-    String "                ";
-
-Place 2080H;
-MenuBebidas:
-    String "  Menu Bebidas  ";
-    String "  1- Quentes    ";
-    String "  2- Frias      ";
-    String "                ";
-    String "                ";
-    String "                ";
-    String "                ";
-
-Place 2100H;
-MenuErro:
-    String "    Atencao     ";
-    String "     Opcao      ";
-    String "    Errada      ";
-    String "                ";
-    String "                ";
-    String "                ";
-    String "                ";
-
-Place 0000H;
-Inicio:
-    MOV R0, Principio;
-    JMP R0;
-
-Place 3000H;
-Principio:
-    MOV SP, StackPointer;
-    CALL LimpaDisplay;
+    MOV R0, EscPagamento;
+    CALL MostraDisplay;
     CALL LimpaPerifericos;
-    MOV R0, ON_OFF;
-Liga:
-    MOV R1, [R0];
+    MOV R8, 219H;
+    CALL MostraNumero;
+    ;verifica se ja inserio o suficiente:
+    CMP R6, R5;
+    JGE MenuTalao;
+LeOpPagamento:
+    MOV R3, Opcao;
+    MOVB R2, [R3];
+    CMP R2, 0;
+    JEQ LeOpPagamento;
+;Op1
+    CMP R2, 1;
+    JNE Op2;
+    MOV R7, 10;
+    ADD R6, R7;
+    ;O stock de 10cents aumenta em 1;
+    MOV R9, 50AH;
+    MOV R7, [R9];
+    ADD R7, 1;
+    MOV [R9], R7;
+    JMP Pagamento;
+Op2:
+    CMP R2, 2;
+    JNE Op3;
+    MOV R7, 20;
+    ADD R6, R7;
+    ;O stock de 20cents aumenta em 1;
+    MOV R9, 516H; 50AH+12=516H
+    MOV R7, [R9];
+    ADD R7, 1;
+    MOV [R9], R7;
+    JMP Pagamento;
+Op3:
+    CMP R2 ,3;
+    JNE Op4;
+    MOV R7, 50;
+    ADD R6, R7;
+    ;O stock de 50cents aumenta em 1;
+    MOV R9, 522H;  516H+12=522H;
+    MOV R7, [R9];
+    ADD R7, 1;
+    MOV [R9], R7;
+    JMP Pagamento;
+Op4:
+    CMP R2 ,4;
+    JNE Op5;
+    MOV R7, 100;
+    ADD R6, R7;
+    ;O stock de 1euro aumenta em 1;
+    MOV R9, 52EH; 522H+12=52EH;
+    MOV R7, [R9];
+    ADD R7, 1;
+    MOV [R9], R7;
+    JMP Pagamento;
+Op5:
+    CMP R2 ,5;
+    JNE Op6;
+    MOV R7, 200;
+    ADD R6, R7;
+    ;O stock de 2euros aumenta em 1;
+    MOV R9, 53AH; 52EH+12=53AH;
+    MOV R7, [R9];
+    ADD R7, 1;
+    MOV [R9], R7;
+    JMP Pagamento;
+Op6:
+    CMP R2 ,6;
+    JNE Op7;
+    MOV R7, 500;
+    ADD R6, R7;
+    ;O stock de 5euros aumenta em 1;
+    MOV R9, 546H; 53AH+12=546H;
+    MOV R7, [R9];
+    ADD R7, 1;
+    MOV [R9], R7;
+    JMP Pagamento;
+Op7:
+    CMP R2, 7;
+    JNE OpNULL;
+    CALL DarDinheiro ; doq ele inseriu, R6
     CMP R1, 1;
-    JNE Liga;
-Ligado:
-    MOV R2, MenuInicio;
-    CALL MostraDisplay;
-    CALL LimpaPerifericos;
-LeOpcao:
-    MOV R0, Opcao;
-    MOVB R1, [R0];
-    CMP R1, 0;
-    JEQ LeOpcao;
-    CMP R1, MBebidas;
-    JEQ OBebidas;
-    CMP R1, MAlmoco;
-    JEQ OAlmoco;
-    CMP R1, MSandes;
-    JEQ OSandes;
-    CMP R1, MSopas;
-    JEQ OSopas;
+    JEQ MenuBebidas;
+    CMP R1, 2;
+    JEQ MenuSnacks;
+OpNULL:
     CALL RotinaErro;
-    JMP Ligado;
+    JMP Pagamento;
 
+;--------------------------
+;  DarDinheiro
+;--------------------------
+; R6 valor inserido
+DarDinheiro:
+    PUSH R0; é a ultima moeda
+    PUSH R1; quantidade de moedas
+    PUSH R3; endereço q vai diminuindo ate ser R0
+    PUSH R4; valor 12 (nº de bytes entre cada elemento)
+    PUSH R5; valor da moeda
 
-;--------------
-;  Menu Bebidas
-;--------------
-OBebidas:
-    MOV R2, MenuBebidas;
-    CALL MostraDisplay;
-    CALL LimpaPerifericos;
-    MOV R0, Opcao;
-OBebidasCiclo:
-    MOVB R1, [R0];
-    CMP R1, 0;
-    JEQ OBebidasCiclo;
-    CMP R1, MQuente;
-    JEQ Ligado;
-    CMP R1, MFrio;
-    JEQ Ligado;
-    CALL RotinaErro;
-    JMP OBebidas;
-
-;------------------
-;   Rotina Erro
-;------------------
-RotinaErro:
-    PUSH R0;
-    PUSH R1;
-    PUSH R2;
-    MOV R2, MenuErro;
-    CALL MostraDisplay;
-    CALL LimpaPerifericos;
-    MOV R0, OK;
-Erro:
-    MOVB R1, [R0];
-    CMP R1, 1;
-    JNE Erro;
-    POP R2;
-    POP R1;
-    POP R0;
-    RET;
     
-;------------------------
-;  Rotina Almoco
-;------------------------
-
-OAlmoco:
-    JMP Ligado;
-
-;------------------------
-;  Rotina Sandes
-;------------------------
-
-OSandes:
-    JMP Ligado;
-
-;------------------------
-;  Rotina Sopas
-;------------------------
-
-OSopas:
-    JMP Ligado;
-
-;-------------------------
-;     Mostra Display
-;-------------------------
-
-MostraDisplay:
-    PUSH R0;
-    PUSH R1;
-    PUSH R3;
-    MOV R0, Display;
-    MOV R1, DisplayEnd;
-Ciclo:
-    MOV R3, [R2];
-    MOV [R0], R3;
-    ADD R2, 2;
-    ADD R0, 2;
-    CMP R0, R1;
-    JLE Ciclo;
+    MOV R0, 50AH;
+    MOV R3, 546H;
+    MOV R4, 12;
+DarDinheiroCiclo:
+    MOV R1, [R3];
+    CMP R6, R1;
+    JLT ProxMoeda; inserido<moeda    2.70<5 
+    ; inserido>=moeda  5>=5  6>=5  2.70>=2
+    CMP R1, 0;
+    JEQ ProxMoeda;
+    SUB R1, 1;
+    MOV [R3], R1;
+    SUB R3, 2;
+    MOV R5, [R3];
+    SUB R6, R5;
+    ADD R3, 2;
+    JMP DarDinheiroCiclo;
+ProxMoeda:
+    SUB R3, R4;
+    CMP R3, R0;
+    JGE DarDinheiroCiclo;
+    CMP R6, 0;
+    JNE RotinaErro; n tinha moedas para dar a ele, dai ve se ele aceita a mesma; isto nunca vai acontecer qd tiver na opção 7(Voltar) do Bedidas/Snacks
+    POP R5;
+    POP R4;
     POP R3;
     POP R1;
     POP R0;
     RET;
-
-;-----------------------
-;    Limpa Perifericos
-;-----------------------
-LimpaPerifericos:
-    PUSH R0;
-    PUSH R1;
-    PUSH R2;
-    PUSH R3;
-    MOV R0, ON_OFF;
-    MOV R1, Opcao;
-    MOV R2, OK;
-    MOV R3, 0;
-    MOVB [R0], R3;
-    MOVB [R1], R3;
-    MOVB [R2], R3;
-    POP R3;
-    POP R2;
-    POP R1;
-    POP R0;
-    RET;
-
-;--------------------------
-;  Limpa Display
-;--------------------------
-LimpaDisplay:
-    PUSH R0;
-    PUSH R1;
-    PUSH R2;
-    MOV R0, Display;
-    MOV R1, DisplayEnd;
-CicloLimpa:
-    MOV R2, CaracterVazio;
-    MOVB [R0], R2;
-    ADD R0, 1;
-    CMP R0, R1;
-    JLE CicloLimpa;
-    POP R2;
-    POP R1;
-    POP R0;
-    RET;
-

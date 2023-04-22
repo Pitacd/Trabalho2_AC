@@ -1,8 +1,6 @@
 ;periférico de entrada
 PE EQU 280H;
 
-;dinheiro inserido pelo utilizador
-UserMoney EQU 0;
 ;posição no display para representar o dinheiro inserido
 ShowMoneyPagamento EQU 219H;
 ShowMoneyTalao EQU 23BH;
@@ -315,9 +313,9 @@ TemProduto:
 Pagamento:
     MOV R0, EscPagamento;
     CALL PrecoProd_Moeda; guarda em R5 preço do produto a pagar
-    MOV R6, UserMoney; dinheiro inserido pelo utilizador
-    CALL MostraDisplay;
+    MOV R6, 0; dinheiro inserido pelo utilizador
 VerifMoneyInsert:
+    CALL MostraDisplay;
     CALL LimpaPerifericos;
     MOV R7, ShowMoneyPagamento;
     MOV R8, R6;
@@ -334,7 +332,8 @@ LeOpPagamento:
     JLE InserirMoeda;
     CMP R3, 7;
     JNE OpErro;
-    JMP DarDinheiro;
+    CALL DarDinheiro;
+    JMP MenuProd;
 InserirMoeda:
     CALL AddMoeda;
     JMP VerifMoneyInsert;
@@ -455,6 +454,8 @@ OpMenuTalao:
     JEQ OpMenuTalao;
     CMP R3, 1;
     JEQ CheckPointMenuInicial;
+    MOV R3, MenuErro;
+    CALL RotinaErro;
     JMP Talao; 
 
 ;-----------------------
@@ -561,8 +562,8 @@ DarDinheiro:
     PUSH R4; valor 12 (nº de bytes entre cada elemento)
     PUSH R5; valor da moeda
 
-    MOV R0, 50AH;
-    MOV R3, 546H;
+    MOV R0, 0F5AH;
+    MOV R3, 0F96H;
     MOV R4, 12;
 DarDinheiroCiclo:
     MOV R1, [R3];
@@ -583,7 +584,10 @@ ProxMoeda:
     CMP R3, R0;
     JGE DarDinheiroCiclo;
     CMP R6, 0;
-    JNE RotinaErro; n tinha moedas para dar a ele, dai ve se ele aceita a mesma; isto nunca vai acontecer qd tiver na opção 7(Voltar) do Bedidas/Snacks
+    JEQ FimDarDinheiro; 
+    MOV R3, MenuErro;n tinha moedas para dar a ele, dai ve se ele aceita a mesma; isto nunca vai acontecer qd tiver na opção 7(Voltar) do Bedidas/Snacks
+    CALL RotinaErro;
+FimDarDinheiro:
     POP R5;
     POP R4;
     POP R3;
