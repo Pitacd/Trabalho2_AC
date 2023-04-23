@@ -783,6 +783,9 @@ FimStockInfo:
     POP R6;
     RET;
 
+;-------------------------------
+; Mostra Quantidade Elementos
+;------------------------------
 MostraQtElemt:
     PUSH R0;
     PUSH R1;
