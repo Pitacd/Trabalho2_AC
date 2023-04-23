@@ -732,15 +732,6 @@ ErroStock:
 ;-------------------------------
 ; Adiciona inforrmação ao stock
 ;-------------------------------
-;R0 nº máximo de elemento que podemos mostrar por cada interface de stock
-;R1 escolha da lista
-;R2 posição do elemento na lista de bebidas/snacks
-;R3 posição do elemento na lista de moedas
-;R4 posilão do elemento na lista
-;R5 quantidade ou preço do elemento 
-;R7 posição no display onde queremos mostrar o valor
-;R8 valor a representar 
-;R9 posição no display onde queremos mostrar o nome
 StockInfo:
     PUSH R6;
     PUSH R7;
