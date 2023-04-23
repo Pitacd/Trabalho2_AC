@@ -743,15 +743,17 @@ ErroStock:
 ;R9 posição no display onde queremos mostrar o nome
 StockInfo:
     PUSH R6;
+    PUSH R7;
     PUSH R8;
     PUSH R9;
     PUSH R10;
     MOV R0, 0; nº de elementos colocados no display
+    MOV R7, 21FH; posição no display onde queremos mostrar o valor
     MOV R9, 210H; posição inicial no display onde mostraremos o 1º nome
 CicloAddInfo:
     CMP R1, 3;
     JLT InfoNaoMoedas; verificar se a lista é a das bebidas ou snacks
-    JGT InfoFinal; verificar se ja precorreu todas as listas
+    JGT FimStockInfo; verificar se ja precorreu todas as listas
     MOV R3, R2;
 InfoNaoMoedas:
     CALL PosProd_Moeda;
@@ -760,8 +762,10 @@ InfoNaoMoedas:
     JEQ ProxLista; verificar se já precorreu toda a lista
     CALL PosProd_Moeda; 
     CALL MostraString;
+    CALL MostraQtElemt;
     MOV R3, 16; nº de bytes a adicionar para ir para a próximo posição
     ADD R9, R3; R9 = próxima posição do nome do elemento no display
+    ADD R7, R3; R7 = próxima posição do quantidade do elemento no display
     ADD R0, 1; incremento o nº de elementos no display
     ADD R2, 1; avança para a proóxima posição
     CMP R0, 5; 
@@ -771,18 +775,43 @@ ProxLista:
     ADD R1, 1; avança para a proxima lista
     MOV R2, 1; volta para o 1º elemento
     JMP CicloAddInfo;
-InfoFinal:
-    MOV R4, QtProd;
-    MOV R3, 16;
-    CALL MostraString;
-    MOV R4, DinhTotal;
-    ADD R9, R3;
-    CALL MostraString;
 FimStockInfo:
     POP R10;
     POP R9;
     POP R8;
+    POP R7;
     POP R6;
+    RET;
+
+MostraQtElemt:
+    PUSH R0;
+    PUSH R1;
+    PUSH R2;
+    PUSH R3;
+    PUSH R5; 
+    PUSH R7; 
+    CALL QtProd_Moeda; R5 = quantidade do elemento
+    MOV R0, 0; nº de caracteres insridos no display
+    MOV R1, 10; valor a dividir para obter cada número
+    MOV R3, 48; valor a somar para passar para ASCII
+CicloMostraQtElemt:
+    MOV R2, R5; R2 = valor a mostrar
+    DIV R5, R1; 
+    MOD R2, R1;
+    ADD R2, R3;
+    MOVB [R7], R2;
+    SUB R7, 1;
+    ADD R0, 1;
+    CMP R0, 5;
+    JGE FimCicloMostraQtElemt;
+    JMP CicloMostraQtElemt;
+FimCicloMostraQtElemt:
+    POP R7;
+    POP R5;
+    POP R3;
+    POP R2;
+    POP R1;
+    POP R0;
     RET;
 
 ;---------------------------
@@ -817,7 +846,6 @@ AddElemt:
     ADD R2, 1; incrementa a posição
     JMP CicloContaElemt;
 NPaginas:
-    ADD R0, 2; queremos mostrar no stock a quantidade de produtos total e dinheiro total por isso somamos 2
     MOV R10, R0;
     MOV R1, 5; nº de elementos por cada interface
     DIV R10, R1; R10 = nº de páginas necessárias
