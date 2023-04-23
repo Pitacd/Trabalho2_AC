@@ -1,10 +1,6 @@
 ;periférico de entrada
 PE EQU 280H;
 
-;posição no display para representar o dinheiro inserido
-ShowMoneyPagamento EQU 219H;
-ShowMoneyTalao EQU 23BH;
-
 ;password inserida pelo utilizador
 UserPassword EQU 300H;
 
@@ -140,7 +136,7 @@ StockAutent:
 ;interface do stock vazio com a opção seguinte
 Place 2300H;
 StockOSeg:
-    String "-- Stock  /  ---";
+    String "-- Stock 1/  ---";
     String "                ";
     String "                ";
     String "                ";
@@ -151,7 +147,7 @@ StockOSeg:
 ;interface do stock vazio com a opção vazio
 Place 2380H;
 StockOVolt:
-    String "-- Stock  /  ---";
+    String "-- Stock 1/  ---";
     String "                ";
     String "                ";
     String "                ";
@@ -329,7 +325,7 @@ Pagamento:
 VerifMoneyInsert:
     CALL MostraDisplay; 
     CALL LimpaPerifericos;
-    MOV R7, ShowMoneyPagamento; R7 = posição do display onde será mostrado o dinheiro inserido
+    MOV R7, 219H; R7 = posição do display onde será mostrado o dinheiro inserido
     MOV R8, R6; R8 = dinheiro inserido
     CALL MostraDinheiro; mostra no display o dinheiro inserido  
     CMP R6, R5; verifica se já inseriu dinheiro suficiente
@@ -449,7 +445,7 @@ Talao:
     CALL MostraDisplay;
     CALL LimpaPerifericos;
 MostraValorPagar:
-    MOV R7, ShowMoneyTalao; R7 = posição onde queremos mostrar o valor do produto no display
+    MOV R7, 23BH; R7 = posição onde queremos mostrar o valor do produto no display
     MOV R8, R5; R8 = valor a representar no display
     MOV R9, 230H; R9 = posição onde queremos mostrar o nome da bebida/snack
     CALL MostraNome; mostra o nome da bebida/snack no display
@@ -486,7 +482,7 @@ MostraNome:
     PUSH R2;
     PUSH R3;
     PUSH R4;
-    CALL PosProd_Moeda; R4 = posição desse produto na sua lista
+    CALL PosProd_Moeda; R4 = posição desse elemento na sua lista
     MOV R0, 0; R0 = nº caracteres colocados
     MOV R1, 8; R1 = tamanho dos nomes das bebidas ou snacks ou moedas
 CicloMostraN:
@@ -509,6 +505,7 @@ FimCicloMostraN:
 ;------------------------------------------
 ; Posição produto na lista bebida/snacks/moedas
 ;------------------------------------------
+;R1 lista que queremos aceder
 ;R2 opção de pagamento/ opcão de bebida/snack
 ;R4 guarda a posição do elemento na lista bebida/snack/moedas
 PosProd_Moeda:
@@ -682,10 +679,137 @@ PasswordErrada:
 ;     Stock
 ;------------------------------
 Stock:
-    MOV R0, StockOSeg;
+    MOV R6, 1; R6 = página atual no stock 
+    CALL NPaginasStock; R10 = nº de páginas necessário
+PagOpSegVolt:
+    MOV R0, StockOSeg; R0 = posição do interface do stock com a opção seguinte
+    CMP R6, R10;
+    JLT MostraPagina; verifica se ainda não se encontra na ultima página
+    MOV R0, StockOVolt; R0 = posição do interface do stock com a opção voltar
+MostraPagina:
     CALL MostraDisplay;
     CALL LimpaPerifericos;
-    JMP Stock;
+    CALL PaginaAtualStock;
+OpSegVolt:
+    MOV R3, PE;
+    MOVB R0, [R3];
+    CMP R0, 0;
+    JEQ OpSegVolt;
+    CMP R0, 1;
+    JNE StockOpVolt;
+    CMP R6, R10;
+    JGE ErroStock;
+    ADD R6, 1;
+    JMP PagOpSegVolt;
+StockOpVolt:
+    CMP R0, 4;
+    JNE ErroStock;
+    CMP R6, R10;
+    JNE ErroStock;
+    JMP CheckPointMenuInicial;
+ErroStock:
+    MOV R3, MenuErro;
+    CALL RotinaErro;
+    JMP PagOpSegVolt;
+
+;-------------------------------
+; Adiciona inforrmação ao stock
+;-------------------------------
+;R0 nº máximo de elemento que podemos mostrar por cada interface de stock
+;R1 escolha da lista
+;R2 posição do elemento na lista de bebidas/snacks
+;R3 posição do elemento na lista de moedas
+;R4 posilão do elemento na lista
+;R5 quantidade ou preço do elemento 
+;R7 posição no display onde queremos mostrar o valor
+;R8 valor a representar 
+;R9 posição no display onde queremos mostrar o nome
+
+
+
+;---------------------------
+; Nº páginas para o Stock
+;--------------------------
+;R10 guarda o nº de páginas necessário
+NPaginasStock:
+    PUSH R0;
+    PUSH R1;
+    PUSH R2;
+    PUSH R3;
+    PUSH R4;
+    MOV R0, 0; nº de elementos total nas listas 
+    MOV R1, 1; lista que desejamos aceder
+    MOV R2, 1; posição do elemento na lista
+CicloContaElemt:
+    CMP R1, 3;
+    JNE NaoLMoedas;
+    MOV R3, R2; R3 = posição do elemento na lista moedas
+NaoLMoedas:
+    CALL PosProd_Moeda; R4 posição do elemento na lista
+    MOVB R3, [R4];
+    CMP R3, 0;
+    JNE AddElemt; verifica se já precorreu toda a lista
+    ADD R1, 1; avança para a próxima lista
+    MOV R2, 1; volta para a 1º posição
+    CMP R1, 3; 
+    JGT NPaginas; verifica se já precorremos todas as listas
+    JMP CicloContaElemt;
+AddElemt:
+    ADD R0, 1; incremento o nº de elementos
+    ADD R2, 1; incrementa a posição
+    JMP CicloContaElemt;
+NPaginas:
+    ADD R0, 2; queremos mostrar no stock a quantidade de produtos total e dinheiro total por isso somamos 2
+    MOV R10, R0;
+    MOV R1, 5; nº de elementos por cada interface
+    DIV R10, R1; R10 = nº de páginas necessárias
+    MOD R0, R1; resto da divisão do nº de páginas por 5
+    CMP R0, 0; 
+    JEQ FimNPaginas; verifica se esse resto é igual a 0
+    ADD R10, 1; incrementa o nº de páginas
+FimNPaginas:
+    POP R4;
+    POP R3;
+    POP R2;
+    POP R1;
+    POP R0;
+    RET;
+
+;------------------------------
+; Mostra página atual Stock
+;------------------------------
+;R6 nº da página atual
+PaginaAtualStock:
+    PUSH R0;
+    PUSH R1;
+    PUSH R2;
+    PUSH R3;
+    PUSH R4;
+    MOV R0, R6; R0 = nº da página atual
+    MOV R1, 48; R1 = valor a somar para passar um número para notação ASCII
+    ADD R0, R1;
+    MOV R2, 209H; posição para a qual queremos colocar o nº de página no display
+    MOVB [R2], R0;
+    ADD R2, 3;
+    MOV R0, R10; R0 = nº de páginas do stock
+CicloPagTotal:
+    MOV R4, R0;
+    MOV R3, 10; 
+    DIV R0, R3;
+    MOD R4, R3; 
+    ADD R4, R1;
+    MOVB [R2], R4;
+    CMP R0, 0;
+    JEQ FimPagAtual;
+    SUB R2, 1;
+    JMP CicloPagTotal;
+FimPagAtual:
+    POP R4;
+    POP R3;
+    POP R2;
+    POP R1;
+    POP R0;
+    RET;
 
 ;------------------------------------------------------------------------------
 ;  Colocar * em vez de _ para o utilizador verificar que o caracter foi inserido
