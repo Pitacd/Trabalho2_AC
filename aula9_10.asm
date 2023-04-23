@@ -130,3 +130,31 @@ ProxMoeda:
     POP R1;
     POP R0;
     RET;
+
+
+
+
+MostraString:
+    PUSH R0; R0 = nº de caracteres escritos
+    PUSH R1; R1 = tamanho da string
+    PUSH R2; 
+    PUSH R4; R4 posição da String na memória
+    PUSH R9; R9 posição no display para a qual queremos coloca la
+    MOV R0, 0; 
+    MOV R1, 8;
+CicloMostraString:
+    CMP R0, R1; 
+    JGE FimCicloMostraN; verifica se já foram colocados todos os caracteres
+    MOV R2, [R4]; R2 = dois caracteres guardados em R4
+    MOV [R9], R2; escreve no display esses caracteres
+    ADD R0, 2;
+    ADD R4, 2; passa para a próxima palavra
+    ADD R9, 2; passa para a próxima palavra
+    JMP CicloMostraString;
+FimCicloMostraString:
+    POP R9;
+    POP R4;
+    POP R2;
+    POP R1;
+    POP R0;
+    RET;
