@@ -486,20 +486,12 @@ CompPass:
     CMP R0, 5; verificar se já se percorreu todos os caracteres 
     JGE Stock;
     JMP CompPass;
-
-;---------------------------
-;  Erro Faltam Caracteres
-;---------------------------
 FaltaCaracteres:
-    MOV R3, MenuFaltaCaract;
+    MOV R3, MenuFaltaCaract; R3 = interface de erro de falta caracteres
     CALL RotinaErro;
     JMP ProxCaracterPass;
-
-;-----------------------------
-;   Password Incorreta
-;-----------------------------
 PasswordErrada:
-    MOV R3, MenuPasswordErrada;
+    MOV R3, MenuPasswordErrada; R3 = interface de erro de password errada
     CALL RotinaErro;
     JMP StockAutenticacao;
 
