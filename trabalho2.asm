@@ -13,17 +13,6 @@ PosCaractWrite EQU 243H;
 DisplayBegin EQU 200H;
 DisplayEnd EQU 270H;
 
-;Quantidade de produtos Total
-Place 0EC0H;
-QtProd:
-    String "QtPrdTot";
-
-;Dinheiro Total no Stock
-Place 0EE0H;
-DinhTotal:
-    String "DinhTot ";
-
-
 ;PassWord Stock
 Place 0F00H; 
 Password:
@@ -46,7 +35,7 @@ ListaMoedas:
     Word 0; quantidade de moedas de 1 euro
     String "2Euros  ";
     Word 200;
-    Word 0; quantidade de moedas de 2 euros
+    Word 1; quantidade de moedas de 2 euros
     String "5Euros  ";
     Word 500;
     Word 0; quantidade de notas de 5 euros
@@ -224,7 +213,7 @@ MenuFaltaDinheiro:
     String "     ATENCAO    ";
     String " FALTA DINHEIRO ";
     String "   NA MAQUINA   ";
-    String "                ";
+    String "Faltou:         ";
     String "Abortar:        ";
     String "1) S   2) N     ";
 
@@ -330,6 +319,14 @@ TemProduto:
 ;R7 posição do display onde será mostrado o dinheiro inserido
 ;R8 número que queremos mostrar no display
 Pagamento:
+    PUSH R0; caso aconteça de não conseguir dar o dinheiro todo por causa de situações expecificas
+    PUSH R1; irá guardar no endereço 30CH de memória 1
+    MOV R0, 30CH; o que no DarDinheiro irá ignorar o abortar (para não bugar/fazer loops infinitos)
+    MOV R1, 1;
+    MOV [R0], R1;
+    POP R1;
+    POP R0;
+
     MOV R0, EscPagamento; R0 = posição onde esta a interface escolha de pagamento
     CALL PrecoProd_Moeda; R5 = preço do produto a pagar
     MOV R6, 0; dinheiro inserido pelo utilizador
@@ -362,11 +359,31 @@ OpErro:
     JMP VerifMoneyInsert;
 
 ;--------------------------
+;  CheckPointMenuInicial
+;--------------------------
+CheckPointMenuInicial:
+    JMP MenuInicial;
+    
+;--------------------------
+;  CheckPointStockAutenticacao
+;--------------------------
+CheckPointStockAutenticacao:
+    JMP StockAutenticacao;
+
+;--------------------------
 ;    Talão
 ;--------------------------
-;R7 posição omde queremos mostrar valor no display
+;R7 posição onde queremos mostrar valor no display
 ;R8 valor a representar no display
 Talao:
+    PUSH R0; ao contrário do que está no pagamento
+    PUSH R1; em vez de colocar a 1 coloca a 0, que é para não ignorar pela primeira vez que tentar abortar
+    MOV R0, 30CH;
+    MOV R1, 0;
+    MOV [R0], R1;
+    POP R1;
+    POP R0;
+
     MOV R0, MenuTalao; R0 = posição onde esta a interface do talão
     CALL MostraDisplay;
     CALL LimpaPerifericos;
@@ -392,24 +409,30 @@ OpMenuTalao:
     MOV R4, PE;
     MOVB R3, [R4]; R3 = periférico de entrada/ opção menu talão
     CMP R3, 0;
-    JEQ OpMenuTalao; veridica se foi inserida alguma opção
+    JEQ OpMenuTalao; verifica se foi inserida alguma opção
     CMP R3, 1;
-    JEQ MenuInicial;
+    JEQ DarDinheiroTalao;
     MOV R3, MenuErro; R3 = posição da interface de erro, opção errada
     CALL RotinaErro; mostra a interface do erro ao utilizador
     JMP Talao; 
-
-;--------------------------
-;  CheckPointMenuInicial
-;--------------------------
-CheckPointMenuInicial:
-    JMP MenuInicial;
-    
-;--------------------------
-;  CheckPointStockAutenticacao
-;--------------------------
-CheckPointStockAutenticacao:
-    JMP StockAutenticacao;
+    DarDinheiroTalao:
+    MOV R8, R6; R8 vai ser usado no DarDinheiro caso necessario | R6 é o inserido
+    MOV R6, R9; R6 variavel para o DarDinheiro | R9 troco
+    CALL PosProd_Moeda; R4 = endereço do Produto (no nome)
+    ADD R4, 7;
+    ADD R4, 3; R4+10 = endereço do Produto (na quantidade)
+    MOV R10, [R4];
+    SUB R10, 1;
+    MOV [R4], R10; quantidade-1
+    CALL DarDinheiro;
+    PUSH R0;
+    PUSH R1;
+    MOV R0, 30CH;
+    MOV R1, 0;
+    MOV [R0], R1;
+    POP R1;
+    POP R0;
+    JEQ CheckPointMenuInicial;FD
 
 ;-----------------------------
 ; Stock Autenticação
@@ -576,7 +599,7 @@ Erro:
     CALL LimpaPerifericos;
 CiclErro:
     MOV R1, PE;
-    MOVB R2, [R1]; R2 = ao byte menos significativo da memoria de endereço R1
+    MOVB R2, [R1]; R2 = ao byte mais significativo da memoria de endereço R1
     CMP R2, 0; verifica se OK está ativo, igual a 1
     JEQ CiclErro;
     CMP R2, 1;
@@ -661,47 +684,147 @@ AddMoeda:
 ;--------------------------
 ;  DarDinheiro
 ;--------------------------
-; R6 dinheiro inserido pelo utilizador
+; R6 é o dinheiro que vai dar ao utilizador
 DarDinheiro:
     PUSH R0; é a ultima moeda
     PUSH R1; quantidade de moedas
     PUSH R3; endereço q vai diminuindo ate ser R0
-    PUSH R4; valor 12 (nº de bytes entre cada elemento)
     PUSH R5; valor da moeda
+    PUSH R7; valor 12 (nº de bytes entre cada elemento)
+    PUSH R8; endereço do tracker            mas depois é valor do resto do troco e depois é auxiliar
+    PUSH R9; quantidade de moedas do tracker          e depois é auxiliar
 
     MOV R0, 0F5AH;
     MOV R3, 0F96H;
-    MOV R4, 12;
+    MOV R7, 12;
+    MOV R8, 300H;
+    CALL LimpaMoedasTrocoTracker;
 DarDinheiroCiclo:
-    MOV R1, [R3];
-    CMP R6, R1;
+    SUB R3, 2;
+    MOV R5, [R3]; R3 ta no endereço do valor da moeda
+    ADD R3, 2;
+    CMP R6, R5;
     JLT ProxMoeda; inserido<moeda    2.70<5 
     ; inserido>=moeda  5>=5  6>=5  2.70>=2
+    MOV R1, [R3]; R3 ta no endereço da quantidade de moedas
     CMP R1, 0;
     JEQ ProxMoeda;
+    MOV R9, [R8];
+    ADD R9, 1;
+    MOV [R8], R9;
     SUB R1, 1;
     MOV [R3], R1;
-    SUB R3, 2;
-    MOV R5, [R3];
     SUB R6, R5;
-    ADD R3, 2;
     JMP DarDinheiroCiclo;
 ProxMoeda:
-    SUB R3, R4;
+    ADD R8, 2;
+    SUB R3, R7;
     CMP R3, R0;
     JGE DarDinheiroCiclo;
     CMP R6, 0;
-    JEQ FimDarDinheiro; 
-    MOV R3, MenuFaltaDinheiro;n tinha moedas para dar a ele, dai ve se ele aceita a mesma; isto nunca vai acontecer qd tiver na opção 7(Voltar) do Bedidas/Snacks
+    JEQ FimDarDinheiro;
+DarDinheiroFaltaMoedas:
+    MOV R0, MenuFaltaDinheiro;n tinha moedas para dar a ele, dai ve se ele aceita a mesma
+    CALL MostraDisplay;
+    MOV R7, 247H; Posição no display para mostrar o resto do troco
+    MOV R8, R6; valor para mostrar 
+    CALL MostraDinheiro;
+    CALL LimpaPerifericos; 247H
+LeOpFaltaMoedas:   
+    MOV R0, PE;
+    MOVB R1, [R0];
+    CMP R1, 0;
+    JEQ LeOpFaltaMoedas;
+    CMP R1, 1; Abortar Sim
+    JEQ Devolver;
+    CMP R1, 2;  Abortar Não
+    JEQ FimDarDinheiro;
+    MOV R3, MenuErro;
     CALL RotinaErro;
+    JMP DarDinheiroFaltaMoedas;
+Devolver:
+    MOV R9, 30CH;
+    MOV R8, [R9];
+    CMP R8, 1;
+    JEQ FimDarDinheiro;
+    ADD R10, 1;
+    MOV [R4], R10;
+    CALL Devolve;
+    POP R9;
+    POP R8;
+    MOV R6, R8; R8 é o inserido
+    PUSH R8;
+    PUSH R9;
+    CALL DarDinheiro;
 FimDarDinheiro:
+    POP R9;
+    POP R8;
+    POP R7;
     POP R5;
-    POP R4;
     POP R3;
     POP R1;
     POP R0;
     RET;
-    
+
+;--------------------------
+; Devolve
+;--------------------------
+Devolve:
+    PUSH R0;
+    PUSH R1;
+    PUSH R2;
+    PUSH R3;
+    PUSH R4;
+    PUSH R5;
+    PUSH R6;
+    PUSH R7;
+    MOV R0, 300H; endereço do tracker inicio
+    MOV R1, 30AH; endereço do tracker fim
+    ;R2 quantidade que está no tracker
+    MOV R3, 0F5AH; endereço da quantidade de moedas | da moeda de 10cents 
+    MOV R4, 12; nº bits entre elementos da lista de moedas
+    ;R5 quantidade que está na lista de moedas
+    MOV R6, 30CH; endereço de onde vai tar a dizer q passou aqui (conbater loops infinitos!!!)
+DevolveMoedasCiclo:
+    MOV R2, [R1];
+    MOV R5, [R3];
+    ADD R2, R5;
+    MOV [R3], R2;
+    SUB R1, 2;
+    ADD R3, R4;
+    CMP R1, R0;
+    JGE DevolveMoedasCiclo;
+    MOV R7, 1
+    MOV [R6], R7;
+    POP R7;
+    POP R6;
+    POP R5;
+    POP R4;
+    POP R3
+    POP R2;
+    POP R1;
+    POP R0;
+    RET;
+
+;--------------------------
+; LimpaMoedasTrocoTracker
+;--------------------------
+LimpaMoedasTrocoTracker:
+    PUSH R0;
+    PUSH R1;
+    PUSH R2;
+    MOV R0, 300H;
+    MOV R1, 30AH;
+    MOV R2, 0;
+CicloLimpaMoedasTracker:
+    MOV [R0], R2;
+    ADD R0, 2;
+    CMP R0, R1;
+    JLE CicloLimpaMoedasTracker;
+    POP R2;
+    POP R1;
+    POP R0;
+    RET;
 ;-----------------------
 ;      Mostra String
 ;-----------------------
