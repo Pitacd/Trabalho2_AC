@@ -438,8 +438,8 @@ StockAutenticacao:
 ProxCaracterPass:
     CALL MostraDisplay;
     CALL LimpaPerifericos;
-LePass:
     CALL AddCaractMenu;
+LePass:
     MOV R3, PE;
     MOVB R2, [R3]; R2 = periférico de entrada
     CMP R2, 0; 
