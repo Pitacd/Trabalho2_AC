@@ -326,7 +326,6 @@ Pagamento:
     MOV [R0], R1;
     POP R1;
     POP R0;
-
     MOV R0, EscPagamento; R0 = posição onde esta a interface escolha de pagamento
     CALL PrecoProd_Moeda; R5 = preço do produto a pagar
     MOV R6, 0; dinheiro inserido pelo utilizador
@@ -383,7 +382,6 @@ Talao:
     MOV [R0], R1;
     POP R1;
     POP R0;
-
     MOV R0, MenuTalao; R0 = posição onde esta a interface do talão
     CALL MostraDisplay;
     CALL LimpaPerifericos;
