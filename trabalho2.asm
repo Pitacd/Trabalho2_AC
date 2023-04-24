@@ -228,6 +228,7 @@ Inicio:
 ;----------------------------
 Place 3000H;
 MenuInicial:
+    MOV SP, 8FFFH; posição da stack pointer 
     MOV R0, MaquinaMadeira; R0 = posição onde esta a interface inicial da máquina
     CALL MostraDisplay; 
     CALL LimpaPerifericos;
