@@ -361,91 +361,6 @@ OpErro:
     CALL RotinaErro; mostra a interface do erro ao utilizador
     JMP VerifMoneyInsert;
 
-;-----------------------------
-;  Mostra Dinheiro Inserido
-;-----------------------------
-;R7 posição no display onde colocaremos o valor
-;R8 valor a representar no display
-MostraDinheiro:  
-    PUSH R0;
-    PUSH R1;
-    PUSH R2;
-    PUSH R3;
-    PUSH R4;
-    PUSH R5;
-    PUSH R6;
-    MOV R0, R7; R0 = posição no display onde colocaremos o valor
-    MOV R6, R8; R6 = valor a representar no display
-    MOV R1, 10; R1 = valor pelo qual vou dividir para obter cada número
-    ADD R0, 4; R0 = posição do caracter a preencher
-    MOV R2, 0; R2 = nº de caracteres já preenchidos
-Ponto:
-    CMP R2, 2; verifica se ja se encontra no 3º caracter
-    JNE Numero; 
-    MOV R5, 2EH; R5 = "."
-    MOVB [R0], R5; escreve o ponto no display
-    SUB R0, 1; proxima posição do display a preencher
-    ADD R2, 1; incrementa o nº de caracter preenchidos
-Numero:
-    MOV R3, R6; R3 = quociente/valor que queremos mostrar 
-    MOD R3, R1; R3 =  resto da divisão inteira de R3 por 10
-    DIV R6, R1; R6 = quociente da divisão inteira de R6 por 10
-    MOV R4, 48; 
-    ADD R4, R3; passar o número para representação ASCII
-    MOVB [R0], R4; colocar o número no display
-    SUB R0, 1; proxima posição do display a preencher
-    ADD R2, 1; incrementa o nº de caracter preenchidos
-    CMP R2, 4; verifica se ja preencheu todos os caracteres
-    JLT Ponto;
-FimMostra:
-    POP R6;
-    POP R5;
-    POP R4;
-    POP R3;
-    POP R2;
-    POP R1;
-    POP R0;
-    RET;
-
-;--------------------------
-;  CheckPointMenuInicial
-;--------------------------
-CheckPointMenuInicial:
-    JMP MenuInicial;
-    
-;--------------------------
-;  CheckPointStockAutenticacao
-;--------------------------
-CheckPointStockAutenticacao:
-    JMP StockAutenticacao;
-
-
-;------------------------------------------------------
-; Adicionar moeda máquino e incrementar valor inserida
-;-----------------------------------------------------
-;R3 opção de pagamento
-;R6 dinheiro introduzido pelo utilizador
-AddMoeda:
-    PUSH R0;
-    PUSH R1;
-    PUSH R3;
-    PUSH R4;
-    MOV R1, 3; para indicar que iremos utilizar a lista de moedas na chamada da função PosProd_Moeda 
-    CALL PosProd_Moeda; R4 = posição da moeda na lista de moedas
-    MOV R0, 8; R0 = nº de bytes a avançar dessa posição para chegar ao valor da moeda
-    ADD R4, R0; R4 = posição onde está o valor da moeda
-    MOV R1, [R4]; R1 = valor da moeda
-    ADD R6, R1; R6 = R6 + valor da moeda
-    ADD R4, 2; R4 = posição onde está a quantidade da moeda
-    MOV R1, [R4]; R1 = quantidade da moeda no stock
-    ADD R1, 1; incrementa a quantidade dessa moeda em 1
-    MOV [R4], R1; guarda essa quantidade no stock
-    POP R4;
-    POP R3;
-    POP R1;
-    POP R0;
-    RET;
-
 ;--------------------------
 ;    Talão
 ;--------------------------
@@ -479,76 +394,22 @@ OpMenuTalao:
     CMP R3, 0;
     JEQ OpMenuTalao; veridica se foi inserida alguma opção
     CMP R3, 1;
-    JEQ CheckPointMenuInicial;
+    JEQ MenuInicial;
     MOV R3, MenuErro; R3 = posição da interface de erro, opção errada
     CALL RotinaErro; mostra a interface do erro ao utilizador
     JMP Talao; 
 
-;-----------------------
-;      Mostra String
-;-----------------------
-MostraString:
-    PUSH R0; R0 = nº de caracteres escritos
-    PUSH R1; R1 = tamanho da string
-    PUSH R2; 
-    PUSH R4; R4 posição da String na memória
-    PUSH R9; R9 posição no display para a qual queremos coloca la
-    MOV R0, 0; 
-    MOV R1, 8;
-CicloMostraString:
-    CMP R0, R1; 
-    JGE FimCicloMostraString; verifica se já foram colocados todos os caracteres
-    MOV R2, [R4]; R2 = dois caracteres guardados em R4
-    MOV [R9], R2; escreve no display esses caracteres
-    ADD R0, 2;
-    ADD R4, 2; passa para a próxima palavra
-    ADD R9, 2; passa para a próxima palavra
-    JMP CicloMostraString;
-FimCicloMostraString:
-    POP R9;
-    POP R4;
-    POP R2;
-    POP R1;
-    POP R0;
-    RET;
-
-;------------------------------------------
-; Posição produto na lista bebida/snacks/moedas
-;------------------------------------------
-;R1 lista que queremos aceder
-;R2 opção de pagamento/ opcão de bebida/snack
-;R4 guarda a posição do elemento na lista bebida/snack/moedas
-PosProd_Moeda:
-    PUSH R0;
-    PUSH R1;
-    PUSH R2;
-    PUSH R3;
-    PUSH R5;
-    CMP R1, 1; verifica se queremos verificar a quantidade do produto na lista de bebidas
-    JEQ PosBebida; 
-    CMP R1, 2; verifica se queremos verificar a quantidade do produto na lista de snacks
-    JEQ PosSnack;
-PosMoeda:
-    MOV R2, R3; R2 = opção de pagamento
-    MOV R4, ListaMoedas; 
-    JMP CalculoPos; 
-PosBebida:
-    MOV R4,ListaBebidas;
-    JMP CalculoPos; 
-PosSnack:
-    MOV R4, ListaSnacks;
-CalculoPos:
-    MOV R0, 12; R0 = nº de bytes entre os elementos da lista de bebidas/snacks/moedas
-    MOV R5, R2; R5 = R2, escolha da opção da bebida/snack/pagamento
-    SUB R5, 1; R5 = R5 - 1, posição do elemento nessa lista
-    MUL R0, R5; R0 = R0 * R5, obter nº de bytes a precorrer na lista para chegar no elemento 
-    ADD R4, R0; R4 contem o endereço onde se encontra a bebida/snack/moeda na lista, apontando para o seu nome 
-    POP R5;
-    POP R3;
-    POP R2;
-    POP R1;
-    POP R0;
-    RET; 
+;--------------------------
+;  CheckPointMenuInicial
+;--------------------------
+CheckPointMenuInicial:
+    JMP MenuInicial;
+    
+;--------------------------
+;  CheckPointStockAutenticacao
+;--------------------------
+CheckPointStockAutenticacao:
+    JMP StockAutenticacao;
 
 ;-----------------------------
 ; Stock Autenticação
@@ -576,76 +437,6 @@ LePass:
     MOVB [R3], R2; guarda o valor o caracter inserido pelo utilizador na memória
     ADD R1, 1; incrementa em 1 o nº de caracteres inseridos
     JMP ProxCaracterPass;
-
-;--------------------------
-;  DarDinheiro
-;--------------------------
-; R6 dinheiro inserido pelo utilizador
-DarDinheiro:
-    PUSH R0; é a ultima moeda
-    PUSH R1; quantidade de moedas
-    PUSH R3; endereço q vai diminuindo ate ser R0
-    PUSH R4; valor 12 (nº de bytes entre cada elemento)
-    PUSH R5; valor da moeda
-
-    MOV R0, 0F5AH;
-    MOV R3, 0F96H;
-    MOV R4, 12;
-DarDinheiroCiclo:
-    MOV R1, [R3];
-    CMP R6, R1;
-    JLT ProxMoeda; inserido<moeda    2.70<5 
-    ; inserido>=moeda  5>=5  6>=5  2.70>=2
-    CMP R1, 0;
-    JEQ ProxMoeda;
-    SUB R1, 1;
-    MOV [R3], R1;
-    SUB R3, 2;
-    MOV R5, [R3];
-    SUB R6, R5;
-    ADD R3, 2;
-    JMP DarDinheiroCiclo;
-ProxMoeda:
-    SUB R3, R4;
-    CMP R3, R0;
-    JGE DarDinheiroCiclo;
-    CMP R6, 0;
-    JEQ FimDarDinheiro; 
-    MOV R3, MenuFaltaDinheiro;n tinha moedas para dar a ele, dai ve se ele aceita a mesma; isto nunca vai acontecer qd tiver na opção 7(Voltar) do Bedidas/Snacks
-    CALL RotinaErro;
-FimDarDinheiro:
-    POP R5;
-    POP R4;
-    POP R3;
-    POP R1;
-    POP R0;
-    RET;
-    
-;--------------------------
-; Quantidade Produto/Moedas
-;--------------------------
-;R5 guardar quantidade de produto ou moeda
-QtProd_Moeda:
-    PUSH R4; 
-    CALL PosProd_Moeda; R4 = posição do elemento na lista bebida/snack/moedas 
-    MOV R5, 10; R5 = posição a adicionar à posição do elemento na lista para chegar na quantidade
-    ADD R4, R5; R4 = posição contem a quantidade do elemento
-    MOV R5, [R4]; R5 = quantidade do elemento
-    POP R4;
-    RET;
-
-;---------------------
-; Preço Produto/Moedas
-;---------------------
-;R5 guardar o preço do produto ou moeda
-PrecoProd_Moeda:
-    PUSH R4; 
-    CALL PosProd_Moeda; R4 = posição do elemento na lista bebida/snack/moedas 
-    MOV R5, 8; R5 = posição a adicionar à posição do elemento na lista para chegar no preço
-    ADD R4, R5; R4 = posição contem o preço do elemento
-    MOV R5, [R4]; R5 = quantidade do elemento
-    POP R4;
-    RET;
 
 ;---------------------------------
 ; Confirmar Password Inserida
@@ -729,6 +520,307 @@ ErroStock:
     MOV R2, R9;
     JMP PagOpSegVolt;
 
+;-------------------------------
+;   Funções Auxiliares
+;-------------------------------
+
+;------------------------
+;   Mostra Display
+;------------------------
+;R0 interface que queremos mostrar
+MostraDisplay:
+    PUSH R1;
+    PUSH R2;
+    PUSH R3;
+    PUSH R4;
+    MOV R4, R0; R4 = posição na memória onde se encontra a posição de uma interface
+    MOV R1, DisplayBegin; R1 = 1º posição do display 
+    MOV R2, DisplayEnd; R2 = última posição do display
+Ciclo:
+    MOV R3, [R4]; R3 = conteúdo da memória de endereço R4
+    MOV [R1], R3; o conteúdo da memória de endereço R1 = a R3
+    ADD R4, 2; avança para a palavra logo a seguir a R4
+    ADD R1, 2; avança para a palavra logo a seguir a R1
+    CMP R1, R2; verifica se já preencheu o display todo
+    JLT Ciclo;
+    POP R4;
+    POP R3; 
+    POP R2; 
+    POP R1;
+    RET; 
+
+;-----------------------
+;    Limpa Perifericos
+;-----------------------
+LimpaPerifericos:
+    PUSH R0;
+    PUSH R1;
+    MOV R0, PE; R0 = posição do periférico de entrada
+    MOV R1, 0; R1 = 0
+    MOV [R0], R1; R0 = 0
+    POP R1;
+    POP R0;
+    RET;
+
+;--------------------------
+;  Rotina Erro
+;--------------------------
+;R3 interface de erro que queremos mostrar
+RotinaErro:
+    PUSH R0;
+    PUSH R1;
+    PUSH R2;
+    MOV R0, R3;
+Erro:
+    CALL MostraDisplay;
+    CALL LimpaPerifericos;
+CiclErro:
+    MOV R1, PE;
+    MOVB R2, [R1]; R2 = ao byte menos significativo da memoria de endereço R1
+    CMP R2, 0; verifica se OK está ativo, igual a 1
+    JEQ CiclErro;
+    CMP R2, 1;
+    JNE Erro; 
+    POP R2;
+    POP R1;
+    POP R0;
+    RET;
+
+;-----------------------------
+;  Mostra Dinheiro Inserido
+;-----------------------------
+;R7 posição no display onde colocaremos o valor
+;R8 valor a representar no display
+MostraDinheiro:  
+    PUSH R0;
+    PUSH R1;
+    PUSH R2;
+    PUSH R3;
+    PUSH R4;
+    PUSH R5;
+    PUSH R6;
+    MOV R0, R7; R0 = posição no display onde colocaremos o valor
+    MOV R6, R8; R6 = valor a representar no display
+    MOV R1, 10; R1 = valor pelo qual vou dividir para obter cada número
+    ADD R0, 4; R0 = posição do caracter a preencher
+    MOV R2, 0; R2 = nº de caracteres já preenchidos
+Ponto:
+    CMP R2, 2; verifica se ja se encontra no 3º caracter
+    JNE Numero; 
+    MOV R5, 2EH; R5 = "."
+    MOVB [R0], R5; escreve o ponto no display
+    SUB R0, 1; proxima posição do display a preencher
+    ADD R2, 1; incrementa o nº de caracter preenchidos
+Numero:
+    MOV R3, R6; R3 = quociente/valor que queremos mostrar 
+    MOD R3, R1; R3 =  resto da divisão inteira de R3 por 10
+    DIV R6, R1; R6 = quociente da divisão inteira de R6 por 10
+    MOV R4, 48; 
+    ADD R4, R3; passar o número para representação ASCII
+    MOVB [R0], R4; colocar o número no display
+    SUB R0, 1; proxima posição do display a preencher
+    ADD R2, 1; incrementa o nº de caracter preenchidos
+    CMP R2, 4; verifica se ja preencheu todos os caracteres
+    JLT Ponto;
+FimMostra:
+    POP R6;
+    POP R5;
+    POP R4;
+    POP R3;
+    POP R2;
+    POP R1;
+    POP R0;
+    RET;
+
+;------------------------------------------------------
+; Adicionar moeda máquino e incrementar valor inserida
+;-----------------------------------------------------
+;R3 opção de pagamento
+;R6 dinheiro introduzido pelo utilizador
+AddMoeda:
+    PUSH R0;
+    PUSH R1;
+    PUSH R3;
+    PUSH R4;
+    MOV R1, 3; para indicar que iremos utilizar a lista de moedas na chamada da função PosProd_Moeda 
+    CALL PosProd_Moeda; R4 = posição da moeda na lista de moedas
+    MOV R0, 8; R0 = nº de bytes a avançar dessa posição para chegar ao valor da moeda
+    ADD R4, R0; R4 = posição onde está o valor da moeda
+    MOV R1, [R4]; R1 = valor da moeda
+    ADD R6, R1; R6 = R6 + valor da moeda
+    ADD R4, 2; R4 = posição onde está a quantidade da moeda
+    MOV R1, [R4]; R1 = quantidade da moeda no stock
+    ADD R1, 1; incrementa a quantidade dessa moeda em 1
+    MOV [R4], R1; guarda essa quantidade no stock
+    POP R4;
+    POP R3;
+    POP R1;
+    POP R0;
+    RET;
+
+;--------------------------
+;  DarDinheiro
+;--------------------------
+; R6 dinheiro inserido pelo utilizador
+DarDinheiro:
+    PUSH R0; é a ultima moeda
+    PUSH R1; quantidade de moedas
+    PUSH R3; endereço q vai diminuindo ate ser R0
+    PUSH R4; valor 12 (nº de bytes entre cada elemento)
+    PUSH R5; valor da moeda
+
+    MOV R0, 0F5AH;
+    MOV R3, 0F96H;
+    MOV R4, 12;
+DarDinheiroCiclo:
+    MOV R1, [R3];
+    CMP R6, R1;
+    JLT ProxMoeda; inserido<moeda    2.70<5 
+    ; inserido>=moeda  5>=5  6>=5  2.70>=2
+    CMP R1, 0;
+    JEQ ProxMoeda;
+    SUB R1, 1;
+    MOV [R3], R1;
+    SUB R3, 2;
+    MOV R5, [R3];
+    SUB R6, R5;
+    ADD R3, 2;
+    JMP DarDinheiroCiclo;
+ProxMoeda:
+    SUB R3, R4;
+    CMP R3, R0;
+    JGE DarDinheiroCiclo;
+    CMP R6, 0;
+    JEQ FimDarDinheiro; 
+    MOV R3, MenuFaltaDinheiro;n tinha moedas para dar a ele, dai ve se ele aceita a mesma; isto nunca vai acontecer qd tiver na opção 7(Voltar) do Bedidas/Snacks
+    CALL RotinaErro;
+FimDarDinheiro:
+    POP R5;
+    POP R4;
+    POP R3;
+    POP R1;
+    POP R0;
+    RET;
+    
+;-----------------------
+;      Mostra String
+;-----------------------
+MostraString:
+    PUSH R0; R0 = nº de caracteres escritos
+    PUSH R1; R1 = tamanho da string
+    PUSH R2; 
+    PUSH R4; R4 posição da String na memória
+    PUSH R9; R9 posição no display para a qual queremos coloca la
+    MOV R0, 0; 
+    MOV R1, 8;
+CicloMostraString:
+    CMP R0, R1; 
+    JGE FimCicloMostraString; verifica se já foram colocados todos os caracteres
+    MOV R2, [R4]; R2 = dois caracteres guardados em R4
+    MOV [R9], R2; escreve no display esses caracteres
+    ADD R0, 2;
+    ADD R4, 2; passa para a próxima palavra
+    ADD R9, 2; passa para a próxima palavra
+    JMP CicloMostraString;
+FimCicloMostraString:
+    POP R9;
+    POP R4;
+    POP R2;
+    POP R1;
+    POP R0;
+    RET;
+
+;------------------------------------------
+; Posição produto na lista bebida/snacks/moedas
+;------------------------------------------
+;R1 lista que queremos aceder
+;R2 opção de pagamento/ opcão de bebida/snack
+;R4 guarda a posição do elemento na lista bebida/snack/moedas
+PosProd_Moeda:
+    PUSH R0;
+    PUSH R1;
+    PUSH R2;
+    PUSH R3;
+    PUSH R5;
+    CMP R1, 1; verifica se queremos verificar a quantidade do produto na lista de bebidas
+    JEQ PosBebida; 
+    CMP R1, 2; verifica se queremos verificar a quantidade do produto na lista de snacks
+    JEQ PosSnack;
+PosMoeda:
+    MOV R2, R3; R2 = opção de pagamento
+    MOV R4, ListaMoedas; 
+    JMP CalculoPos; 
+PosBebida:
+    MOV R4,ListaBebidas;
+    JMP CalculoPos; 
+PosSnack:
+    MOV R4, ListaSnacks;
+CalculoPos:
+    MOV R0, 12; R0 = nº de bytes entre os elementos da lista de bebidas/snacks/moedas
+    MOV R5, R2; R5 = R2, escolha da opção da bebida/snack/pagamento
+    SUB R5, 1; R5 = R5 - 1, posição do elemento nessa lista
+    MUL R0, R5; R0 = R0 * R5, obter nº de bytes a precorrer na lista para chegar no elemento 
+    ADD R4, R0; R4 contem o endereço onde se encontra a bebida/snack/moeda na lista, apontando para o seu nome 
+    POP R5;
+    POP R3;
+    POP R2;
+    POP R1;
+    POP R0;
+    RET; 
+
+;--------------------------
+; Quantidade Produto/Moedas
+;--------------------------
+;R5 guardar quantidade de produto ou moeda
+QtProd_Moeda:
+    PUSH R4; 
+    CALL PosProd_Moeda; R4 = posição do elemento na lista bebida/snack/moedas 
+    MOV R5, 10; R5 = posição a adicionar à posição do elemento na lista para chegar na quantidade
+    ADD R4, R5; R4 = posição contem a quantidade do elemento
+    MOV R5, [R4]; R5 = quantidade do elemento
+    POP R4;
+    RET;
+
+;---------------------
+; Preço Produto/Moedas
+;---------------------
+;R5 guardar o preço do produto ou moeda
+PrecoProd_Moeda:
+    PUSH R4; 
+    CALL PosProd_Moeda; R4 = posição do elemento na lista bebida/snack/moedas 
+    MOV R5, 8; R5 = posição a adicionar à posição do elemento na lista para chegar no preço
+    ADD R4, R5; R4 = posição contem o preço do elemento
+    MOV R5, [R4]; R5 = quantidade do elemento
+    POP R4;
+    RET;
+    
+;------------------------------------------------------------------------------
+;  Colocar * em vez de _ para o utilizador verificar que o caracter foi inserido
+;-----------------------------------------------------------------------------
+AddCaractMenu:
+    PUSH R0;
+    PUSH R2;
+    PUSH R3;
+    PUSH R4;
+    MOV R0, 0; R0 = i 
+    MOV R2, PosCaractWrite; R2 = posição no display onde se encontra o 1º caracter q será escrito
+    MOV R3, R1; R3 = nº de caracters escritos
+    SHL R3, 1; R3 = 2 x R3
+CicloAddC:
+    CMP R0, R3; verificar se ja todos os substitui _ por *, que representam os caracteres inseridos pelo utilizador  
+    JGE FimAddCaract; 
+    MOV R4, CaractWrite; R4 = "*"
+    MOVB [R2], R4; substituição de _ por *
+    ADD R0, 2; R0 = R0 + 2
+    ADD R2, 2; R2 = R2 + 2
+    JMP CicloAddC;
+FimAddCaract:
+    POP R4;
+    POP R3;
+    POP R2;
+    POP R0;
+    RET;
+ 
 ;-------------------------------
 ; Adiciona inforrmação ao stock
 ;-------------------------------
@@ -890,94 +982,3 @@ FimPagAtual:
     POP R1;
     POP R0;
     RET;
-
-;------------------------------------------------------------------------------
-;  Colocar * em vez de _ para o utilizador verificar que o caracter foi inserido
-;-----------------------------------------------------------------------------
-AddCaractMenu:
-    PUSH R0;
-    PUSH R2;
-    PUSH R3;
-    PUSH R4;
-    MOV R0, 0; R0 = i 
-    MOV R2, PosCaractWrite; R2 = posição no display onde se encontra o 1º caracter q será escrito
-    MOV R3, R1; R3 = nº de caracters escritos
-    SHL R3, 1; R3 = 2 x R3
-CicloAddC:
-    CMP R0, R3; verificar se ja todos os substitui _ por *, que representam os caracteres inseridos pelo utilizador  
-    JGE FimAddCaract; 
-    MOV R4, CaractWrite; R4 = "*"
-    MOVB [R2], R4; substituição de _ por *
-    ADD R0, 2; R0 = R0 + 2
-    ADD R2, 2; R2 = R2 + 2
-    JMP CicloAddC;
-FimAddCaract:
-    POP R4;
-    POP R3;
-    POP R2;
-    POP R0;
-    RET;
- 
-;--------------------------
-;  Rotina Erro
-;--------------------------
-;R3 interface de erro que queremos mostrar
-RotinaErro:
-    PUSH R0;
-    PUSH R1;
-    PUSH R2;
-    MOV R0, R3;
-Erro:
-    CALL MostraDisplay;
-    CALL LimpaPerifericos;
-CiclErro:
-    MOV R1, PE;
-    MOVB R2, [R1]; R2 = ao byte menos significativo da memoria de endereço R1
-    CMP R2, 0; verifica se OK está ativo, igual a 1
-    JEQ CiclErro;
-    CMP R2, 1;
-    JNE Erro; 
-    POP R2;
-    POP R1;
-    POP R0;
-    RET;
-
-;------------------------
-;   MostraDispla Display
-;------------------------
-;R0 interface que queremos mostrar
-MostraDisplay:
-    PUSH R1;
-    PUSH R2;
-    PUSH R3;
-    PUSH R4;
-    MOV R4, R0; R4 = posição na memória onde se encontra a posição de uma interface
-    MOV R1, DisplayBegin; R1 = 1º posição do display 
-    MOV R2, DisplayEnd; R2 = última posição do display
-Ciclo:
-    MOV R3, [R4]; R3 = conteúdo da memória de endereço R4
-    MOV [R1], R3; o conteúdo da memória de endereço R1 = a R3
-    ADD R4, 2; avança para a palavra logo a seguir a R4
-    ADD R1, 2; avança para a palavra logo a seguir a R1
-    CMP R1, R2; verifica se já preencheu o display todo
-    JLT Ciclo;
-    POP R4;
-    POP R3; 
-    POP R2; 
-    POP R1;
-    RET; 
-
-;-----------------------
-;    Limpa Perifericos
-;-----------------------
-LimpaPerifericos:
-    PUSH R0;
-    PUSH R1;
-    MOV R0, PE; R0 = posição do periférico de entrada
-    MOV R1, 0; R1 = 0
-    MOV [R0], R1; R0 = 0
-    POP R1;
-    POP R0;
-    RET;
-
-
