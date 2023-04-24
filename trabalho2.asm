@@ -453,6 +453,12 @@ LePass:
     JEQ VerifPass; verifica se o utilizador quer confirmar a palavra passe
     CMP R2, 4; 
     JEQ CheckPointMenuInicial; verifica se o utilizador quer voltar para a pagina inicial
+    MOV R3, 32;
+    CMP R2, R3;
+    JLT ProxCaracterPass; verifica se o utilizador introduziu um valor na notação ASCII
+    MOV R3, 126;
+    CMP R2, R3;
+    JGT ProxCaracterPass; verifica se o utilizador introduziu um valor na notação ASCII
     CMP R1, 5; 
     JGE ProxCaracterPass; verificar se o utilizador já inseriu 5 caracteres
     MOV R3, UserPassword; R3 = a posição da password inserida pelo utilizador
