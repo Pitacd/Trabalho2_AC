@@ -1079,17 +1079,17 @@ PaginaAtualStock:
     MOV R2, 209H; posição para a qual queremos colocar o nº de página no display
     MOVB [R2], R0; coloca o nº de página no display
     ADD R2, 3; posição onde colocaremos o nº máximo de páginas no display
-    MOV R0, R10; R0 = nº de páginas do stock
+    MOV R0, R10; R0 = nº máximo de páginas do stock
 CicloPagTotal:
-    MOV R4, R0; 
-    MOV R3, 10; 
-    DIV R0, R3;
-    MOD R4, R3; 
-    ADD R4, R1;
-    MOVB [R2], R4;
+    MOV R4, R0; R4 = valor a mostrar
+    MOV R3, 10; valor a dividir para obter cada número 
+    DIV R0, R3; R0 = quociente da divisão inteira do valor a mostrar por 10
+    MOD R4, R3; R4 = resto da divisão inteira do valor a mostrar por 10
+    ADD R4, R1; R4 + 48 +, para representar o nº em ASCII
+    MOVB [R2], R4; coloca esse valor no display
     CMP R0, 0;
-    JEQ FimPagAtual;
-    SUB R2, 1;
+    JEQ FimPagAtual; se o quociente der 0 não representa
+    SUB R2, 1; posição a colocar o nº máximo de paginas - 1, para representar a casa decimal
     JMP CicloPagTotal;
 FimPagAtual:
     POP R4;
