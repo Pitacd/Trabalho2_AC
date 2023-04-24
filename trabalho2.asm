@@ -256,7 +256,6 @@ LeOpProdutos:
     MOVB R1, [R2]; R1 = periférico de entrada/opção da categoria de produtos
     CMP R1, 0;
     JEQ LeOpProdutos; verifica se foi introduzido alguma opção
-    JLT OpErrada; verifica se a opção é um valor negativo
     CMP R1, 2; 
     JLE MenuProd; verifica se a opção selecionada foi a das bebidas/snacks
     CMP R1, 7; verifica se a operação foi cancelada
@@ -285,8 +284,7 @@ LeOpcBS:
     MOVB R2, [R3]; R2 = periférico de entrada/ opção de bebida/snack 
     CMP R2, 0; 
     JEQ LeOpcBS; verifica se foi introduzido alguma opção 
-    JLT OpErrada; verifica se a opção é um valor negativo
-    CMP R2, 3; verifica se foi selecionada uma das opções de bebida/snack
+    CMP R2, 3; verifica se foi selecionada uma das opções de bebida/snack 
     JLE VerifQtProd;
     CMP R2, 7; verifica se a operação foi cancelada
     JEQ MenuProdCategoria; volta para a interface de categoria de produtos
@@ -342,7 +340,6 @@ LeOpPagamento:
     MOVB R3, [R4]; R3 = periférico de entrada/ opção de pagamento (0.10cent, 0.20cent, ..., 1euro, etc)
     CMP R3, 0; 
     JEQ LeOpPagamento; verifica se foi introduzido alguma opção  
-    JLT OpErro; verifica se a opção é um valor negativo
     CMP R3, 6; 
     JLE InserirMoeda; verifica se uma das opções de pagamento foi selecionada
     CMP R3, 7;
