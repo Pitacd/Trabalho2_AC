@@ -516,23 +516,23 @@ OpSegVolt:
     MOV R3, PE;
     MOVB R0, [R3];
     CMP R0, 0;
-    JEQ OpSegVolt;
+    JEQ OpSegVolt; verifica se foi inserido algo no periférico de entrada
     CMP R0, 1;
-    JNE StockOpVolt;
+    JNE StockOpVolt; verifica se a opção selecionada é seguinte
     CMP R6, R10;
-    JGE ErroStock;
-    ADD R6, 1;
+    JGE ErroStock; verifica se, se encontra na ultima pagina
+    ADD R6, 1; proxima página, soma 1 ao nº de página
     JMP PagOpSegVolt;
 StockOpVolt:
     CMP R0, 4;
-    JNE ErroStock;
+    JNE ErroStock; verifica se a opção selecionada é voltar
     CMP R6, R10;
-    JNE ErroStock;
+    JNE ErroStock; verifica se se encontra na ultima página
     JMP CheckPointMenuInicial;
 ErroStock:
     MOV R3, MenuErro;
     CALL RotinaErro;
-    MOV R1, R8;
+    MOV R1, R8; se deu erro terá de mostrar a mesma informação do mesmo ponto de partida de antes, do acesso a q lista e posição
     MOV R2, R9;
     JMP PagOpSegVolt;
 
@@ -998,14 +998,14 @@ MostraQtElemt:
     MOV R3, 48; valor a somar para passar para ASCII
 CicloMostraQtElemt:
     MOV R2, R5; R2 = valor a mostrar
-    DIV R5, R1; 
-    MOD R2, R1;
-    ADD R2, R3;
-    MOVB [R7], R2;
-    SUB R7, 1;
-    ADD R0, 1;
-    CMP R0, 5;
-    JGE FimCicloMostraQtElemt;
+    DIV R5, R1; R5 = quociente da divisão inteira do valor a mostrar por 10
+    MOD R2, R1; R2 = resto da divisão inteira do valor a mostrar por 10
+    ADD R2, R3; R2 + 48 +, para representar o nº em ASCII
+    MOVB [R7], R2; coloca esse valor no display
+    SUB R7, 1; 
+    ADD R0, 1; incrementa o nº de caracteres inseridos
+    CMP R0, 5; 
+    JGE FimCicloMostraQtElemt; verifica se já foram colocados 5 caracteres
     JMP CicloMostraQtElemt;
 FimCicloMostraQtElemt:
     POP R7;
@@ -1031,7 +1031,7 @@ NPaginasStock:
     MOV R2, 1; posição do elemento na lista
 CicloContaElemt:
     CMP R1, 3;
-    JNE NaoLMoedas;
+    JNE NaoLMoedas; verifica se a lista que acede é a de moedas
     MOV R3, R2; R3 = posição do elemento na lista moedas
 NaoLMoedas:
     CALL PosProd_Moeda; R4 posição do elemento na lista
@@ -1077,11 +1077,11 @@ PaginaAtualStock:
     MOV R1, 48; R1 = valor a somar para passar um número para notação ASCII
     ADD R0, R1;
     MOV R2, 209H; posição para a qual queremos colocar o nº de página no display
-    MOVB [R2], R0;
-    ADD R2, 3;
+    MOVB [R2], R0; coloca o nº de página no display
+    ADD R2, 3; posição onde colocaremos o nº máximo de páginas no display
     MOV R0, R10; R0 = nº de páginas do stock
 CicloPagTotal:
-    MOV R4, R0;
+    MOV R4, R0; 
     MOV R3, 10; 
     DIV R0, R3;
     MOD R4, R3; 
