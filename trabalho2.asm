@@ -1,5 +1,5 @@
 ;periférico de entrada
-PE EQU 280H;
+PER_EN EQU 280H;
 
 ;password inserida pelo utilizador
 UserPassword EQU 300H;
@@ -232,7 +232,7 @@ MenuInicial:
     CALL MostraDisplay; 
     CALL LimpaPerifericos;
 LeOInical:    
-    MOV R2, PE; 
+    MOV R2, PER_EN; 
     MOVB R1, [R2]; R1 = periférico de entrada/ opção
     CMP R1, 0; verifica se foi introduzido alguma opção
     JEQ LeOInical; se for volta a ler o periférico de entrada
@@ -252,7 +252,7 @@ MenuProdCategoria:
     CALL MostraDisplay;
     CALL LimpaPerifericos;
 LeOpProdutos:
-    MOV R2, PE;
+    MOV R2, PER_EN;
     MOVB R1, [R2]; R1 = periférico de entrada/opção da categoria de produtos
     CMP R1, 0;
     JEQ LeOpProdutos; verifica se foi introduzido alguma opção
@@ -280,7 +280,7 @@ MenuOpcBS:
     CALL MostraDisplay;
     CALL LimpaPerifericos;
 LeOpcBS:
-    MOV R3, PE;
+    MOV R3, PER_EN;
     MOVB R2, [R3]; R2 = periférico de entrada/ opção de bebida/snack 
     CMP R2, 0; 
     JEQ LeOpcBS; verifica se foi introduzido alguma opção 
@@ -334,7 +334,7 @@ VerifMoneyInsert:
     CMP R6, R5; verifica se já inseriu dinheiro suficiente
     JGE Talao; 
 LeOpPagamento:
-    MOV R4, PE;
+    MOV R4, PER_EN;
     MOVB R3, [R4]; R3 = periférico de entrada/ opção de pagamento (0.10cent, 0.20cent, ..., 1euro, etc)
     CMP R3, 0; 
     JEQ LeOpPagamento; verifica se foi introduzido alguma opção  
@@ -399,7 +399,7 @@ MostraValorTroco:
     MOV R8, R9; R8 = troco
     CALL MostraDinheiro;
 OpMenuTalao:
-    MOV R4, PE;
+    MOV R4, PER_EN;
     MOVB R3, [R4]; R3 = periférico de entrada/ opção menu talão
     CMP R3, 0;
     JEQ OpMenuTalao; verifica se foi inserida alguma opção
@@ -438,7 +438,7 @@ ProxCaracterPass:
     CALL LimpaPerifericos;
     CALL AddCaractMenu;
 LePass:
-    MOV R3, PE;
+    MOV R3, PER_EN;
     MOVB R2, [R3]; R2 = periférico de entrada
     CMP R2, 0; 
     JEQ LePass; verifica se foi introduzido algo
@@ -511,7 +511,7 @@ MostraPagina:
     CALL StockInfo;
     CALL LimpaPerifericos;
 OpSegVolt:
-    MOV R3, PE;
+    MOV R3, PER_EN;
     MOVB R0, [R3];
     CMP R0, 0;
     JEQ OpSegVolt; verifica se foi inserido algo no periférico de entrada
@@ -569,7 +569,7 @@ Ciclo:
 LimpaPerifericos:
     PUSH R0;
     PUSH R1;
-    MOV R0, PE; R0 = posição do periférico de entrada
+    MOV R0, PER_EN; R0 = posição do periférico de entrada
     MOV R1, 0; R1 = 0
     MOV [R0], R1; R0 = 0
     POP R1;
@@ -589,7 +589,7 @@ Erro:
     CALL MostraDisplay;
     CALL LimpaPerifericos;
 CiclErro:
-    MOV R1, PE;
+    MOV R1, PER_EN;
     MOVB R2, [R1]; R2 = ao byte mais significativo da memoria de endereço R1
     CMP R2, 0; verifica se OK está ativo, igual a 1
     JEQ CiclErro;
@@ -724,7 +724,7 @@ DarDinheiroFaltaMoedas:
     CALL MostraDinheiro;
     CALL LimpaPerifericos; Limpa periféricos
 LeOpFaltaMoedas:   
-    MOV R0, PE;
+    MOV R0, PER_EN;
     MOVB R1, [R0]; vê o que está no periférico de entrada
     CMP R1, 0;
     JEQ LeOpFaltaMoedas; se for 0 volta para o mesmo ciclo
