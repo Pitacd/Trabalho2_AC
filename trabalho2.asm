@@ -315,13 +315,13 @@ TemProduto:
 ;R7 posição do display onde será mostrado o dinheiro inserido
 ;R8 número que queremos mostrar no display
 Pagamento:
-    PUSH R0; caso aconteça de não conseguir dar o dinheiro todo por causa de situações expecificas
-    PUSH R1; irá guardar no endereço 30CH de memória 1
-    MOV R0, 30CH; o que no DarDinheiro irá ignorar o abortar (para não bugar/fazer loops infinitos)
-    MOV R1, 1;
-    MOV [R0], R1;
-    POP R1;
-    POP R0;
+    PUSH R0;        |
+    PUSH R1;        |
+    MOV R0, 30CH;   | irá guardar no endereço de memória 30CH o valor 1
+    MOV R1, 1;      | o que no DarDinheiro irá ignorar o abortar
+    MOV [R0], R1;   | (para não bugar/fazer loops infinitos por causa de situações específicas de não conseguir dar o dinheiro todo)
+    POP R1;         |
+    POP R0;         |
     MOV R0, EscPagamento; R0 = posição onde esta a interface escolha de pagamento
     CALL PrecoProd_Moeda; R5 = preço do produto a pagar
     MOV R6, 0; dinheiro inserido pelo utilizador
@@ -370,13 +370,13 @@ CheckPointStockAutenticacao:
 ;R7 posição onde queremos mostrar valor no display
 ;R8 valor a representar no display
 Talao:
-    PUSH R0; ao contrário do que está no pagamento
-    PUSH R1; em vez de colocar a 1 coloca a 0, que é para não ignorar pela primeira vez que tentar abortar
-    MOV R0, 30CH;
-    MOV R1, 0;
-    MOV [R0], R1;
-    POP R1;
-    POP R0;
+    PUSH R0;        |
+    PUSH R1;        |
+    MOV R0, 30CH;   | ao contrário do que está no pagamento
+    MOV R1, 0;      | em vez de colocar a 1 coloca a 0, que é para não ignorar pela primeira vez que tentar abortar
+    MOV [R0], R1;   |
+    POP R1;         |
+    POP R0;         |
     MOV R0, MenuTalao; R0 = posição onde esta a interface do talão
     CALL MostraDisplay;
     CALL LimpaPerifericos;
@@ -418,13 +418,13 @@ OpMenuTalao:
     SUB R10, 1;
     MOV [R4], R10; quantidade-1
     CALL DarDinheiro;
-    PUSH R0;
-    PUSH R1;
-    MOV R0, 30CH;
-    MOV R1, 0;
-    MOV [R0], R1;
-    POP R1;
-    POP R0;
+    PUSH R0;        |
+    PUSH R1;        |
+    MOV R0, 30CH;   |
+    MOV R1, 0;      | limpar o endereço 30CH (referente ao ignorar o abortar do DarDinheiro)
+    MOV [R0], R1;   |
+    POP R1;         |
+    POP R0;         |
     JEQ CheckPointMenuInicial;FD
 
 ;-----------------------------
@@ -689,64 +689,67 @@ DarDinheiro:
     MOV R3, 0F96H;
     MOV R7, 12;
     MOV R8, 300H;
-    CALL LimpaMoedasTrocoTracker;
+    CALL LimpaMoedasTrocoTracker; coloca todas as moedas no tracker a 0
 DarDinheiroCiclo:
-    SUB R3, 2;
-    MOV R5, [R3]; R3 ta no endereço do valor da moeda
-    ADD R3, 2;
-    CMP R6, R5;
-    JLT ProxMoeda; inserido<moeda    2.70<5 
-    ; inserido>=moeda  5>=5  6>=5  2.70>=2
+    SUB R3, 2; para ir para o endereço do valor da moeda
+    MOV R5, [R3]; R3 ta no endereço do valor da moeda, ou seja R5=valor da moeda
+    ADD R3, 2; para voltar ao endereço da quantidade de moedas
+    CMP R6, R5; compara o inserido e o valor da moeda
+    JLT ProxMoeda; inserido<moeda vai para a proxima moeda
+    ; caso contrário irá ver se tem essa moeda no stock:
     MOV R1, [R3]; R3 ta no endereço da quantidade de moedas
     CMP R1, 0;
-    JEQ ProxMoeda;
-    MOV R9, [R8];
-    ADD R9, 1;
-    MOV [R8], R9;
-    SUB R1, 1;
-    MOV [R3], R1;
-    SUB R6, R5;
+    JEQ ProxMoeda; caso não tenha moedas vai para a proxima moeda
+    ;senão irá
+    MOV R9, [R8];   |
+    ADD R9, 1;      | adicionar no tracker que foi dado essa moeda
+    MOV [R8], R9;   |
+    SUB R1, 1; tira a moeda
+    MOV [R3], R1; do stock
+    SUB R6, R5; inserido = inserido - valor da moeda
     JMP DarDinheiroCiclo;
 ProxMoeda:
-    ADD R8, 2;
-    SUB R3, R7;
-    CMP R3, R0;
-    JGE DarDinheiroCiclo;
-    CMP R6, 0;
-    JEQ FimDarDinheiro;
+    ADD R8, 2; vai para o proximo endereço do tracker
+    SUB R3, R7; vai para o proximo endereço da quantidade de moedas (posição da quantidade dessa moeda-nº de bytes entre elementos da lista)
+    CMP R3, R0; compara o endereço iterador da moeda com o ultimo endereço
+    JGE DarDinheiroCiclo; volta para o ciclo se ainda falta moedas para ver
+    CMP R6, 0; se o que sobrou é 0
+    JEQ FimDarDinheiro; termina o DarDinheiro
+    ;caso contrário
 DarDinheiroFaltaMoedas:
-    MOV R0, MenuFaltaDinheiro;n tinha moedas para dar a ele, dai ve se ele aceita a mesma
+    MOV R0, MenuFaltaDinheiro; mostra o display do MenuFaltaDinheiro
     CALL MostraDisplay;
-    MOV R7, 247H; Posição no display para mostrar o resto do troco
-    MOV R8, R6; valor para mostrar 
+    MOV R7, 247H; Posição no display para mostrar o resto do dinheiro
+    MOV R8, R6; (MostraDinheiro usa o R8 para o valor principal, R6 é o resto do dinheiro)
     CALL MostraDinheiro;
-    CALL LimpaPerifericos; 247H
+    CALL LimpaPerifericos; Limpa periféricos
 LeOpFaltaMoedas:   
     MOV R0, PE;
-    MOVB R1, [R0];
+    MOVB R1, [R0]; vê o que está no periférico de entrada
     CMP R1, 0;
-    JEQ LeOpFaltaMoedas;
+    JEQ LeOpFaltaMoedas; se for 0 volta para o mesmo ciclo
     CMP R1, 1; Abortar Sim
-    JEQ Devolver;
+    JEQ Devolver; se for para abortar a compra vai para o Devolver
     CMP R1, 2;  Abortar Não
-    JEQ FimDarDinheiro;
+    JEQ FimDarDinheiro; Se não for para abortar termina o DarDinheiro
     MOV R3, MenuErro;
-    CALL RotinaErro;
-    JMP DarDinheiroFaltaMoedas;
+    CALL RotinaErro; se for qualquer outro valor (opção invalida) vai para a rotina de erro
+    JMP DarDinheiroFaltaMoedas; e volta para o DarDinheiroFaltaMoedas para mostrar o display denovo e perguntar se ele quer abortar
 Devolver:
-    MOV R9, 30CH;
-    MOV R8, [R9];
-    CMP R8, 1;
-    JEQ FimDarDinheiro;
-    ADD R10, 1;
-    MOV [R4], R10;
-    CALL Devolve;
-    POP R9;
-    POP R8;
-    MOV R6, R8; R8 é o inserido
-    PUSH R8;
-    PUSH R9;
-    CALL DarDinheiro;
+    MOV R9, 30CH;       | Caso seja um daqueles casos que a maquina tinha troco mas não conseguiu fazer a combinação certa
+    MOV R8, [R9];       | para conseguir dar o dinheiro exato
+    CMP R8, 1;          | irá simplesmente
+    JEQ FimDarDinheiro; | sair do DarDinheiro
+    ; caso contrário
+    ADD R10, 1; R10 é quantidade de produtos. Adiciona 1 (porque antes disto foi subtraido 1, mas como ele abortou devolve o produto para a maquina)
+    MOV [R4], R10; R10 é quantidade de produtos. Adiciona 1 (porque antes disto foi subtraido 1, mas como ele abortou devolve o produto para a maquina)
+    CALL Devolve; devolve as moedas para a maquina (moedas que foram usadas para ver se tinha troco suficiente) e irá setar o 1 para ignorar caso passe denovo no abortar do DarDinheiro para não dar loops infinitos
+    POP R9;                     |
+    POP R8;                     |
+    MOV R6, R8; R8 é o inserido | Vai tentar dar o dinheiro que ele inserio inicialmente
+    PUSH R8;                    |
+    PUSH R9;                    |
+    CALL DarDinheiro;           |
 FimDarDinheiro:
     POP R9;
     POP R8;
@@ -777,16 +780,18 @@ Devolve:
     ;R5 quantidade que está na lista de moedas
     MOV R6, 30CH; endereço de onde vai tar a dizer q passou aqui (conbater loops infinitos!!!)
 DevolveMoedasCiclo:
-    MOV R2, [R1];
-    MOV R5, [R3];
-    ADD R2, R5;
-    MOV [R3], R2;
-    SUB R1, 2;
-    ADD R3, R4;
-    CMP R1, R0;
-    JGE DevolveMoedasCiclo;
-    MOV R7, 1
-    MOV [R6], R7;
+    MOV R2, [R1]; R2 = quantidade de moedas que esta no tracker
+    MOV R5, [R3]; R5 = quantidade de moedas que esta na memória
+    ADD R2, R5; R2 = R2 + R5
+    MOV [R3], R2; coloca no endereço de memória da quantidade de moedas da moeda que está sendo iterada
+    SUB R1, 2; vai para o proximo endereço do tracker
+    ; (aqui subtrai pois no tracker está na ordem 5 euros, 2 euros ... 10cents enquanto que na mémoria é ao contrário,
+    ; por isso no tracker eu comecei no fim do tracker e na memória eu fui apartir do primeiro)
+    ADD R3, R4; vai para o proximo endereço da memoria (endereço=endereço+12)
+    CMP R1, R0; vê se já viu todas as moedas
+    JGE DevolveMoedasCiclo; senão entao volta para o ciclo
+    MOV R7, 1;      | caso contrário termina colocando a 1
+    MOV [R6], R7;   | o endereço referente ao ignorar o abortar (evitar casos específicos)
     POP R7;
     POP R6;
     POP R5;
@@ -808,10 +813,10 @@ LimpaMoedasTrocoTracker:
     MOV R1, 30AH;
     MOV R2, 0;
 CicloLimpaMoedasTracker:
-    MOV [R0], R2;
-    ADD R0, 2;
-    CMP R0, R1;
-    JLE CicloLimpaMoedasTracker;
+    MOV [R0], R2; coloca a 0 no endereço R0
+    ADD R0, 2; vai para o proximo endereço
+    CMP R0, R1; vê se já acabou o tracker
+    JLE CicloLimpaMoedasTracker; se não acabou entao volta para o ciclo caso contrário termina
     POP R2;
     POP R1;
     POP R0;
