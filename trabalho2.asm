@@ -836,7 +836,7 @@ CicloMostraString:
     CMP R0, R1; 
     JGE FimCicloMostraString; verifica se já foram colocados todos os caracteres
     MOV R2, [R4 + R0]; R2 = dois caracteres guardados em R4 + R0
-    MOV [R9 + R0], R2; escreve no display esses caracteres
+    MOV [R9 + R0], R2; escreve no display esses caracteres 
     ADD R0, 2;
     JMP CicloMostraString;
 FimCicloMostraString:
