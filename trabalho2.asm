@@ -303,9 +303,7 @@ VerifQtProd:
     JGT TemProduto; caso tenha pode avançar para o pagamento
     MOV R3, MenuProdFalta; R3 = posição da interface de erro de produto em falta
     CALL RotinaErro; mostra a interface do erro ao utilizador
-    CMP R1, 1; verifica qual categoria o utilizador tinha escolhido anteriormente
-    JEQ MenuBebidas; caso tenha sido a das bebidas volta para a interface com bebidas
-    JMP MenuSnacks; senão para a interface com snacks
+    JMP MenuProd;
 TemProduto:
     JMP Pagamento;
 
