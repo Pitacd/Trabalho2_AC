@@ -23,7 +23,7 @@ Place 0F50H;
 ListaMoedas:
     String "10Cent  ";
     Word 10; 
-    Word 0; quantidade de moedas de 10 centimos
+    Word 10; quantidade de moedas de 10 centimos
     String "20Cent  ";
     Word 20; 
     Word 0; quantidade de moedas de 20 centimos
