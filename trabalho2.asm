@@ -1,6 +1,70 @@
+;periférico de entrada
+PER_EN EQU 280H;
+
+;password inserida pelo utilizador
+UserPassword EQU 300H;
+
+;simbolo de caracter escrito
+CaractWrite EQU 2AH;
+;posição onde se encontra o 1º caracter q será escrito
+PosCaractWrite EQU 243H;
+
 ;display (periférico de saída)
 DisplayBegin EQU 200H;
-DisplayEnd EQu 260H;
+DisplayEnd EQU 270H;
+
+;PassWord Stock
+Place 0F00H; 
+Password:
+    String "#Ac23";
+
+;lista de moedas e quantidades das mesma na máquina
+Place 0F50H;
+ListaMoedas:
+    String "10Cent  ";
+    Word 10; 
+    Word 10; quantidade de moedas de 10 centimos
+    String "20Cent  ";
+    Word 20; 
+    Word 0; quantidade de moedas de 20 centimos
+    String "50Cent  ";
+    Word 50;
+    Word 0; quantidade de moedas de 50 centimos
+    String "1Euro   ";
+    Word 100;
+    Word 0; quantidade de moedas de 1 euro
+    String "2Euros  ";
+    Word 200;
+    Word 1; quantidade de moedas de 2 euros
+    String "5Euros  ";
+    Word 500;
+    Word 0; quantidade de notas de 5 euros
+
+;lista de bebidas com os respectivos preços e quantidades na máquina
+Place 1000H;
+ListaBebidas:
+    String "Agua    ";
+    Word 100; preço
+    Word 3; quantidade
+    String "CocaCola";
+    Word 250; preço
+    Word 4; quantidade
+    String "Fanta   ";
+    Word 220; preço
+    Word 5; quantidade
+
+;lista de snacks com os respectivos preços e quantidades na máquina
+Place 1500H;
+ListaSnacks:
+    String "Batatas ";
+    Word 170; preço 
+    Word 0; quantidade 
+    String "Bolacha ";
+    Word 210; preço 
+    Word 0; quantidade 
+    String "Chiclete";
+    Word 130; preço 
+    Word 0; quantidade 
 
 ;interface incial 
 Place 2000H;
@@ -24,9 +88,32 @@ ProdCategoria:
     String "7) Cancelar     ";
     String "----------------";
 
-;interface do talão
+;interface de escolha de bebidas
 Place 2100H;
-Talao:
+EscBebidas:
+    String "--- Bebidas ----";
+    String "----------------";
+    String "1) Agua     1.00";
+    String "2) CocaCola 2.50";
+    String "3) Fanta    2.20";
+    String "                ";
+    String "7) Cancelar     ";
+    
+
+;interface de escolha de snacks
+Place 2180H;
+EscSnacks:
+    String "---- Snacks ----";
+    String "----------------";
+    String "1) Batatas  1.70";
+    String "2) Bolacha  2.10";
+    String "3) Chiclete 1.30";
+    String "                ";
+    String "7) Cancelar     ";
+
+;interface do talão
+Place 2200H;
+MenuTalao:
     String "----------------";
     String "     TALAO      ";
     String "----------------";
@@ -36,19 +123,31 @@ Talao:
     String "----------------";
 
 ;interface incial para acessar ao stock
-Place 2180H;
+Place 2280H;
 StockAutent:
     String "---- Stock -----";
     String "----------------";
-    String "    Introduza   ";
-    String "     Password   ";
-    String "                ";
+    String "   Introduza    ";
+    String "    Password    ";
+    String "   _ _ _ _ _    ";
     String "1) Confirmar    ";
     String "4) Voltar       ";
 
-;interface do stock vazio
-Place 2200H;
-    String "---- Stock -----";
+;interface do stock vazio com a opção seguinte
+Place 2300H;
+StockOSeg:
+    String "--Stock   /  ---";
+    String "                ";
+    String "                ";
+    String "                ";
+    String "                ";
+    String "                ";
+    String "1) Seguinte     ";
+
+;interface do stock vazio com a opção vazio
+Place 2380H;
+StockOVolt:
+    String "--Stock   /  ---";
     String "                ";
     String "                ";
     String "                ";
@@ -57,11 +156,946 @@ Place 2200H;
     String "4) Voltar       ";
 
 ;interface de pagamento
-Place 2280H;
+Place 2400H;
+EscPagamento:
     String "--- Pagamento---";
     String "Inserido:       ";
-    String "Opções:         ";
+    String "                ";
     String "1) 0.10  2) 0.20";
     String "3) 0.50  4) 1.00";
     String "5) 2.00  6) 5.00";
     String "7) Cancelar     ";
+
+; interface de erro, em caso de opção inexistente
+Place 2480H;
+MenuErro:
+    String "                ";
+    String "                ";
+    String "    ATENCAO     ";
+    String "     OPCAO      ";
+    String "    ERRADA      ";
+    String "                ";
+    String "                ";
+
+Place 2500H;
+MenuFaltaCaract:
+    String "                ";
+    String "                ";
+    String "     ATENCAO    ";
+    String "     FALTAM     ";
+    String "   CARACTERES   ";
+    String "                ";
+    String "                ";
+
+Place 2580H;
+MenuPasswordErrada:
+    String "                ";
+    String "                ";
+    String "     ATENCAO    ";
+    String "    PASSWORD    ";
+    String "    INCORRETA   ";
+    String "                ";
+    String "                ";
+
+Place 2600H;
+MenuProdFalta:
+    String "                ";
+    String "                ";
+    String "     ATENCAO    ";
+    String "     PRODUTO    ";
+    String "    EM FALTA    ";
+    String "                ";
+    String "                ";
+
+Place 2680H;
+MenuFaltaDinheiro:
+    String "                ";
+    String "     ATENCAO    ";
+    String " FALTA DINHEIRO ";
+    String "   NA MAQUINA   ";
+    String "Faltou:         ";
+    String "Abortar:        ";
+    String "1) S   2) N     ";
+
+;Primeira instrução
+Place 0000H;
+Inicio:
+    MOV R0, MenuInicial;
+    JMP R0;
+
+;----------------------------
+;    Menu Inicial
+;----------------------------
+Place 3000H;
+MenuInicial:
+    MOV R0, MaquinaMadeira; R0 = posição onde esta a interface inicial da máquina
+    CALL MostraDisplay; 
+    CALL LimpaPerifericos;
+LeOInical:    
+    MOV R2, PER_EN; 
+    MOVB R1, [R2]; R1 = periférico de entrada/ opção
+    CMP R1, 0; verifica se foi introduzido alguma opção
+    JEQ LeOInical; se for volta a ler o periférico de entrada
+    CMP R1, 1; verifica se a opção selecionada foi a dos produtos
+    JEQ MenuProdCategoria; se for vai para mostra interface com as categorias dos produtos
+    CMP R1,2; verifica se a  opção selecionada foi a do stock
+    JEQ CheckPointStockAutenticacao; se for mostra a interface onde introduz um código para acessar ao stock
+    MOV R3, MenuErro; R3 = posição da interface de erro, opção errada
+    CALL RotinaErro; mostra a interface do erro ao utilizador
+    JMP MenuInicial; 
+
+;---------------------------------
+;  Menu das Categorias de Produtos
+;---------------------------------
+MenuProdCategoria:
+    MOV R0,ProdCategoria; R0 = posição onde esta a interface com as categorias de produtos
+    CALL MostraDisplay;
+    CALL LimpaPerifericos;
+LeOpProdutos:
+    MOV R2, PER_EN;
+    MOVB R1, [R2]; R1 = periférico de entrada/opção da categoria de produtos
+    CMP R1, 0;
+    JEQ LeOpProdutos; verifica se foi introduzido alguma opção
+    CMP R1, 2; 
+    JLE MenuProd; verifica se a opção selecionada foi a das bebidas/snacks
+    CMP R1, 7; verifica se a operação foi cancelada
+    JEQ MenuInicial;
+OpErrada:
+    MOV R3, MenuErro; R3 = posição da interface de erro, opção errada
+    CALL RotinaErro; mostra a interface do erro ao utilizador
+    JMP MenuProdCategoria;
+
+;------------------------------
+;   Menu das Bebidas / Snacks
+;------------------------------
+MenuProd:
+    CMP R1,1; verifica se a opção introduzida na categoria de produtos foi as bebidas
+    JNE MenuSnacks;
+MenuBebidas:
+    MOV R0, EscBebidas; R0 = posição onde esta a interface com as bebidas
+    JMP MenuOpcBS;
+MenuSnacks:
+    MOV R0, EscSnacks; R0 = posição onde esta a interface com os snacks
+MenuOpcBS:
+    CALL MostraDisplay;
+    CALL LimpaPerifericos;
+LeOpcBS:
+    MOV R3, PER_EN;
+    MOVB R2, [R3]; R2 = periférico de entrada/ opção de bebida/snack 
+    CMP R2, 0; 
+    JEQ LeOpcBS; verifica se foi introduzido alguma opção 
+    CMP R2, 3; verifica se foi selecionada uma das opções de bebida/snack 
+    JLE VerifQtProd;
+    CMP R2, 7; verifica se a operação foi cancelada
+    JEQ MenuProdCategoria; volta para a interface de categoria de produtos
+    MOV R3, MenuErro; R3 = posição da interface de erro, opção errada
+    CALL RotinaErro; mostra a interface do erro ao utilizador
+    JMP MenuOpcBS;
+
+;---------------------------------------------
+;  Verificar se o produto existe no stock
+;---------------------------------------------
+;R5 quantidade do produto escolhido no stock
+;R1 opção da categoria de produtos
+VerifQtProd:
+    CALL QtProd_Moeda; R5 = quantidade desse produto no stock
+    CMP R5, 0; verifica se tem esse produto no stock
+    JGT TemProduto; caso tenha pode avançar para o pagamento
+    MOV R3, MenuProdFalta; R3 = posição da interface de erro de produto em falta
+    CALL RotinaErro; mostra a interface do erro ao utilizador
+    JMP MenuProd;
+TemProduto:
+    JMP Pagamento;
+
+;--------------------------------
+;     Pagamento
+;--------------------------------
+;R5 preço do produto a pagar
+;R6 dinheiro inserido pelo utilizador
+;R7 posição do display onde será mostrado o dinheiro inserido
+;R8 número que queremos mostrar no display
+Pagamento:
+    PUSH R0;        |
+    PUSH R1;        |
+    MOV R0, 30CH;   | irá guardar no endereço de memória 30CH o valor 1
+    MOV R1, 1;      | o que no DarDinheiro irá ignorar o abortar
+    MOV [R0], R1;   | (para não bugar/fazer loops infinitos por causa de situações específicas de não conseguir dar o dinheiro todo)
+    POP R1;         |
+    POP R0;         |
+    MOV R0, EscPagamento; R0 = posição onde esta a interface escolha de pagamento
+    CALL PrecoProd_Moeda; R5 = preço do produto a pagar
+    MOV R6, 0; dinheiro inserido pelo utilizador
+VerifMoneyInsert:
+    CALL MostraDisplay; 
+    CALL LimpaPerifericos;
+    MOV R7, 219H; R7 = posição do display onde será mostrado o dinheiro inserido
+    MOV R8, R6; R8 = dinheiro inserido
+    CALL MostraDinheiro; mostra no display o dinheiro inserido  
+    CMP R6, R5; verifica se já inseriu dinheiro suficiente
+    JGE Talao; 
+LeOpPagamento:
+    MOV R4, PER_EN;
+    MOVB R3, [R4]; R3 = periférico de entrada/ opção de pagamento (0.10cent, 0.20cent, ..., 1euro, etc)
+    CMP R3, 0; 
+    JEQ LeOpPagamento; verifica se foi introduzido alguma opção  
+    CMP R3, 6; 
+    JLE InserirMoeda; verifica se uma das opções de pagamento foi selecionada
+    CMP R3, 7;
+    JNE OpErro; caso tenha inserido uma opção inexistente 
+    CALL DarDinheiro; caso cancele o pagamento e tenha inserido dinheiro, este será devolvida
+    JMP MenuProd; volta para o menu com bebidas ou snacks, dependendo da que se encontrar em R1
+InserirMoeda:
+    CALL AddMoeda; adiciona a moeda ao stock e incrementa o dinheiro inserido
+    JMP VerifMoneyInsert; 
+OpErro:
+    MOV R3, MenuErro; R3 = posição da interface de erro, opção errada
+    CALL RotinaErro; mostra a interface do erro ao utilizador
+    JMP VerifMoneyInsert;
+
+;--------------------------
+;  CheckPointMenuInicial
+;--------------------------
+CheckPointMenuInicial:
+    JMP MenuInicial;
+    
+;--------------------------
+;  CheckPointStockAutenticacao
+;--------------------------
+CheckPointStockAutenticacao:
+    JMP StockAutenticacao;
+
+;--------------------------
+;    Talão
+;--------------------------
+;R7 posição onde queremos mostrar valor no display
+;R8 valor a representar no display
+Talao:
+    PUSH R0;        |
+    PUSH R1;        |
+    MOV R0, 30CH;   | ao contrário do que está no pagamento
+    MOV R1, 0;      | em vez de colocar a 1 coloca a 0, que é para não ignorar pela primeira vez que tentar abortar
+    MOV [R0], R1;   |
+    POP R1;         |
+    POP R0;         |
+    MOV R0, MenuTalao; R0 = posição onde esta a interface do talão
+    CALL MostraDisplay;
+    CALL LimpaPerifericos;
+MostraValorPagar:
+    MOV R7, 23BH; R7 = posição onde queremos mostrar o valor do produto no display
+    MOV R8, R5; R8 = valor a representar no display
+    MOV R9, 230H; R9 = posição onde queremos mostrar o nome da bebida/snack
+    CALL PosProd_Moeda; 
+    CALL MostraString;
+    CALL MostraDinheiro; mostra o valor no display
+MostraValorInserido:
+    MOV R9, 16; R9 = nº de bytes para escrever o valor na linha abaixo ao anterior
+    ADD R7, R9; R7 = próxima posição onde queremos mostrar o valor 
+    MOV R8, R6; R8 = dinheiro inserido 
+    CALL MostraDinheiro; mostra o valor no display
+MostraValorTroco:
+    ADD R7, R9; R7 = próxima posição onde queremos mostrar o valor 
+    MOV R9, R6; R9 = dinheiro inserido
+    SUB R9, R5; R9 = dinheiro inserido - valor a pagar = troco
+    MOV R8, R9; R8 = troco
+    CALL MostraDinheiro;
+OpMenuTalao:
+    MOV R4, PER_EN;
+    MOVB R3, [R4]; R3 = periférico de entrada/ opção menu talão
+    CMP R3, 0;
+    JEQ OpMenuTalao; verifica se foi inserida alguma opção
+    CMP R3, 1;
+    JEQ DarDinheiroTalao;
+    MOV R3, MenuErro; R3 = posição da interface de erro, opção errada
+    CALL RotinaErro; mostra a interface do erro ao utilizador
+    JMP Talao; 
+    DarDinheiroTalao:
+    MOV R8, R6; R8 vai ser usado no DarDinheiro caso necessario | R6 é o inserido
+    MOV R6, R9; R6 variavel para o DarDinheiro | R9 troco
+    CALL PosProd_Moeda; R4 = endereço do Produto (no nome)
+    ADD R4, 7;
+    ADD R4, 3; R4+10 = endereço do Produto (na quantidade)
+    MOV R10, [R4];
+    SUB R10, 1;
+    MOV [R4], R10; quantidade-1
+    CALL DarDinheiro;
+    PUSH R0;        |
+    PUSH R1;        |
+    MOV R0, 30CH;   |
+    MOV R1, 0;      | limpar o endereço 30CH (referente ao ignorar o abortar do DarDinheiro)
+    MOV [R0], R1;   |
+    POP R1;         |
+    POP R0;         |
+    JEQ CheckPointMenuInicial;FD
+
+;-----------------------------
+; Stock Autenticação
+;-----------------------------
+StockAutenticacao:
+    MOV R0, StockAutent;
+    MOV R1, 0; guarda em R1 o nº de caracteres preenchidos
+ProxCaracterPass:
+    CALL MostraDisplay;
+    CALL LimpaPerifericos;
+    CALL AddCaractMenu;
+LePass:
+    MOV R3, PER_EN;
+    MOVB R2, [R3]; R2 = periférico de entrada
+    CMP R2, 0; 
+    JEQ LePass; verifica se foi introduzido algo
+    CMP R2, 1; 
+    JEQ VerifPass; verifica se o utilizador quer confirmar a palavra passe
+    CMP R2, 4; 
+    JEQ CheckPointMenuInicial; verifica se o utilizador quer voltar para a pagina inicial
+    MOV R3, 32;
+    CMP R2, R3;
+    JLT ProxCaracterPass; verifica se o utilizador introduziu um valor na notação ASCII
+    MOV R3, 126;
+    CMP R2, R3;
+    JGT ProxCaracterPass; verifica se o utilizador introduziu um valor na notação ASCII
+    CMP R1, 5; 
+    JGE ProxCaracterPass; verificar se o utilizador já inseriu 5 caracteres
+    MOV R3, UserPassword; R3 = a posição da password inserida pelo utilizador
+    ADD R3, R1; R3 = posição a guardar o caracter inserido através do nº inserido de carateres
+    MOVB [R3], R2; guarda o valor o caracter inserido pelo utilizador na memória
+    ADD R1, 1; incrementa em 1 o nº de caracteres inseridos
+    JMP ProxCaracterPass;
+
+;---------------------------------
+; Confirmar Password Inserida
+;--------------------------------
+;R1 nº de carateres inseridos pelo utilizador
+VerifPass:
+    CMP R1, 5; 
+    JLT FaltaCaracteres; verificar se o utilizador já inseriu 5 caracteres
+    MOV R0, 0; R0 = i
+CompPass:
+    MOV R1, UserPassword; R1 = posição da password inserida pelo utilizador
+    MOV R2, Password; R2 = posição da password correta
+    ADD R1, R0; R1 = R1 + i
+    ADD R2, R0; R2 = R2 + i
+    MOVB R3, [R1]; R3 = caracter na posicao i da password inserida pelo utilizador
+    MOVB R4, [R2]; R4 = caracter na posicao i da password 
+    CMP R3, R4; comparação do caracter na posição i da password com o da password inserida pelo utilizador
+    JNE PasswordErrada;
+    ADD R0, 1; i = i + 1
+    CMP R0, 5; verificar se já se percorreu todos os caracteres 
+    JGE Stock;
+    JMP CompPass;
+FaltaCaracteres:
+    MOV R3, MenuFaltaCaract; R3 = interface de erro de falta caracteres
+    CALL RotinaErro;
+    JMP ProxCaracterPass;
+PasswordErrada:
+    MOV R3, MenuPasswordErrada; R3 = interface de erro de password errada
+    CALL RotinaErro;
+    JMP StockAutenticacao;
+
+;------------------------------
+;     Stock
+;------------------------------
+Stock:
+    MOV R6, 1; R6 = página atual no stock 
+    MOV R1, 1; escolha da lista, neste momento é a lista bebidas
+    MOV R2, 1; posição do elemento nessa lista
+    CALL NPaginasStock; R10 = nº de páginas necessário
+PagOpSegVolt:
+    MOV R0, StockOSeg; R0 = posição do interface do stock com a opção seguinte
+    CMP R6, R10;
+    JLT MostraPagina; verifica se ainda não se encontra na ultima página
+    MOV R0, StockOVolt; R0 = posição do interface do stock com a opção voltar
+MostraPagina:
+    CALL MostraDisplay;
+    CALL PaginaAtualStock;
+    MOV R8, R1; registo que guardam em que lista esta pagina acessou 1º
+    MOV R9, R2; registo que guardam em que posição esta pagina acessou 1º
+    CALL StockInfo;
+    CALL LimpaPerifericos;
+OpSegVolt:
+    MOV R3, PER_EN;
+    MOVB R0, [R3];
+    CMP R0, 0;
+    JEQ OpSegVolt; verifica se foi inserido algo no periférico de entrada
+    CMP R0, 1;
+    JNE StockOpVolt; verifica se a opção selecionada é seguinte
+    CMP R6, R10;
+    JGE ErroStock; verifica se, se encontra na ultima pagina
+    ADD R6, 1; proxima página, soma 1 ao nº de página
+    JMP PagOpSegVolt;
+StockOpVolt:
+    CMP R0, 4;
+    JNE ErroStock; verifica se a opção selecionada é voltar
+    CMP R6, R10;
+    JNE ErroStock; verifica se se encontra na ultima página
+    JMP CheckPointMenuInicial;
+ErroStock:
+    MOV R3, MenuErro;
+    CALL RotinaErro;
+    MOV R1, R8; se deu erro terá de mostrar a mesma informação do mesmo ponto de partida de antes, do acesso a q lista e posição
+    MOV R2, R9;
+    JMP PagOpSegVolt;
+
+;-------------------------------
+;   Funções Auxiliares
+;-------------------------------
+
+;------------------------
+;   Mostra Display
+;------------------------
+;R0 interface que queremos mostrar
+MostraDisplay:
+    PUSH R1;
+    PUSH R2;
+    PUSH R3;
+    PUSH R4;
+    MOV R4, R0; R4 = posição na memória onde se encontra a posição de uma interface
+    MOV R1, DisplayBegin; R1 = 1º posição do display 
+    MOV R2, DisplayEnd; R2 = última posição do display
+Ciclo:
+    MOV R3, [R4]; R3 = conteúdo da memória de endereço R4
+    MOV [R1], R3; o conteúdo da memória de endereço R1 = a R3
+    ADD R4, 2; avança para a palavra logo a seguir a R4
+    ADD R1, 2; avança para a palavra logo a seguir a R1
+    CMP R1, R2; verifica se já preencheu o display todo
+    JLT Ciclo;
+    POP R4;
+    POP R3; 
+    POP R2; 
+    POP R1;
+    RET; 
+
+;-----------------------
+;    Limpa Perifericos
+;-----------------------
+LimpaPerifericos:
+    PUSH R0;
+    PUSH R1;
+    MOV R0, PER_EN; R0 = posição do periférico de entrada
+    MOV R1, 0; R1 = 0
+    MOV [R0], R1; R0 = 0
+    POP R1;
+    POP R0;
+    RET;
+
+;--------------------------
+;  Rotina Erro
+;--------------------------
+;R3 interface de erro que queremos mostrar
+RotinaErro:
+    PUSH R0;
+    PUSH R1;
+    PUSH R2;
+    MOV R0, R3;
+Erro:
+    CALL MostraDisplay;
+    CALL LimpaPerifericos;
+CiclErro:
+    MOV R1, PER_EN;
+    MOVB R2, [R1]; R2 = ao byte mais significativo da memoria de endereço R1
+    CMP R2, 0; verifica se OK está ativo, igual a 1
+    JEQ CiclErro;
+    CMP R2, 1;
+    JNE Erro; 
+    POP R2;
+    POP R1;
+    POP R0;
+    RET;
+
+;-----------------------------
+;  Mostra Dinheiro Inserido
+;-----------------------------
+;R7 posição no display onde colocaremos o valor
+;R8 valor a representar no display
+MostraDinheiro:  
+    PUSH R0;
+    PUSH R1;
+    PUSH R2;
+    PUSH R3;
+    PUSH R4;
+    PUSH R5;
+    PUSH R6;
+    MOV R0, R7; R0 = posição no display onde colocaremos o valor
+    MOV R6, R8; R6 = valor a representar no display
+    MOV R1, 10; R1 = valor pelo qual vou dividir para obter cada número
+    ADD R0, 4; R0 = posição do caracter a preencher
+    MOV R2, 0; R2 = nº de caracteres já preenchidos
+Ponto:
+    CMP R2, 2; verifica se ja se encontra no 3º caracter
+    JNE Numero; 
+    MOV R5, 2EH; R5 = "."
+    MOVB [R0], R5; escreve o ponto no display
+    SUB R0, 1; proxima posição do display a preencher
+    ADD R2, 1; incrementa o nº de caracter preenchidos
+Numero:
+    MOV R3, R6; R3 = quociente/valor que queremos mostrar 
+    MOD R3, R1; R3 =  resto da divisão inteira de R3 por 10
+    DIV R6, R1; R6 = quociente da divisão inteira de R6 por 10
+    MOV R4, 48; 
+    ADD R4, R3; passar o número para representação ASCII
+    MOVB [R0], R4; colocar o número no display
+    SUB R0, 1; proxima posição do display a preencher
+    ADD R2, 1; incrementa o nº de caracter preenchidos
+    CMP R2, 4; verifica se ja preencheu todos os caracteres
+    JLT Ponto;
+FimMostra:
+    POP R6;
+    POP R5;
+    POP R4;
+    POP R3;
+    POP R2;
+    POP R1;
+    POP R0;
+    RET;
+
+;------------------------------------------------------
+; Adicionar moeda máquino e incrementar valor inserida
+;-----------------------------------------------------
+;R3 opção de pagamento
+;R6 dinheiro introduzido pelo utilizador
+AddMoeda:
+    PUSH R0;
+    PUSH R1;
+    PUSH R3;
+    PUSH R4;
+    MOV R1, 3; para indicar que iremos utilizar a lista de moedas na chamada da função PosProd_Moeda 
+    CALL PosProd_Moeda; R4 = posição da moeda na lista de moedas
+    MOV R0, 8; R0 = nº de bytes a avançar dessa posição para chegar ao valor da moeda
+    ADD R4, R0; R4 = posição onde está o valor da moeda
+    MOV R1, [R4]; R1 = valor da moeda
+    ADD R6, R1; R6 = R6 + valor da moeda
+    ADD R4, 2; R4 = posição onde está a quantidade da moeda
+    MOV R1, [R4]; R1 = quantidade da moeda no stock
+    ADD R1, 1; incrementa a quantidade dessa moeda em 1
+    MOV [R4], R1; guarda essa quantidade no stock
+    POP R4;
+    POP R3;
+    POP R1;
+    POP R0;
+    RET;
+
+;--------------------------
+;  DarDinheiro
+;--------------------------
+; R6 é o dinheiro que vai dar ao utilizador
+DarDinheiro:
+    PUSH R0; é a ultima moeda
+    PUSH R1; quantidade de moedas
+    PUSH R3; endereço q vai diminuindo ate ser R0
+    PUSH R5; valor da moeda
+    PUSH R7; valor 12 (nº de bytes entre cada elemento)
+    PUSH R8; endereço do tracker            mas depois é valor do resto do troco e depois é auxiliar
+    PUSH R9; quantidade de moedas do tracker          e depois é auxiliar
+
+    MOV R0, 0F5AH;
+    MOV R3, 0F96H;
+    MOV R7, 12;
+    MOV R8, 300H;
+    CALL LimpaMoedasTrocoTracker; coloca todas as moedas no tracker a 0
+DarDinheiroCiclo:
+    SUB R3, 2; para ir para o endereço do valor da moeda
+    MOV R5, [R3]; R3 ta no endereço do valor da moeda, ou seja R5=valor da moeda
+    ADD R3, 2; para voltar ao endereço da quantidade de moedas
+    CMP R6, R5; compara o inserido e o valor da moeda
+    JLT ProxMoeda; inserido<moeda vai para a proxima moeda
+    ; caso contrário irá ver se tem essa moeda no stock:
+    MOV R1, [R3]; R3 ta no endereço da quantidade de moedas
+    CMP R1, 0;
+    JEQ ProxMoeda; caso não tenha moedas vai para a proxima moeda
+    ;senão irá
+    MOV R9, [R8];   |
+    ADD R9, 1;      | adicionar no tracker que foi dado essa moeda
+    MOV [R8], R9;   |
+    SUB R1, 1; tira a moeda
+    MOV [R3], R1; do stock
+    SUB R6, R5; inserido = inserido - valor da moeda
+    JMP DarDinheiroCiclo;
+ProxMoeda:
+    ADD R8, 2; vai para o proximo endereço do tracker
+    SUB R3, R7; vai para o proximo endereço da quantidade de moedas (posição da quantidade dessa moeda-nº de bytes entre elementos da lista)
+    CMP R3, R0; compara o endereço iterador da moeda com o ultimo endereço
+    JGE DarDinheiroCiclo; volta para o ciclo se ainda falta moedas para ver
+    CMP R6, 0; se o que sobrou é 0
+    JEQ FimDarDinheiro; termina o DarDinheiro
+    ;caso contrário
+DarDinheiroFaltaMoedas:
+    MOV R0, MenuFaltaDinheiro; mostra o display do MenuFaltaDinheiro
+    CALL MostraDisplay;
+    MOV R7, 247H; Posição no display para mostrar o resto do dinheiro
+    MOV R8, R6; (MostraDinheiro usa o R8 para o valor principal, R6 é o resto do dinheiro)
+    CALL MostraDinheiro;
+    CALL LimpaPerifericos; Limpa periféricos
+LeOpFaltaMoedas:   
+    MOV R0, PER_EN;
+    MOVB R1, [R0]; vê o que está no periférico de entrada
+    CMP R1, 0;
+    JEQ LeOpFaltaMoedas; se for 0 volta para o mesmo ciclo
+    CMP R1, 1; Abortar Sim
+    JEQ Devolver; se for para abortar a compra vai para o Devolver
+    CMP R1, 2;  Abortar Não
+    JEQ FimDarDinheiro; Se não for para abortar termina o DarDinheiro
+    MOV R3, MenuErro;
+    CALL RotinaErro; se for qualquer outro valor (opção invalida) vai para a rotina de erro
+    JMP DarDinheiroFaltaMoedas; e volta para o DarDinheiroFaltaMoedas para mostrar o display denovo e perguntar se ele quer abortar
+Devolver:
+    MOV R9, 30CH;       | Caso seja um daqueles casos que a maquina tinha troco mas não conseguiu fazer a combinação certa
+    MOV R8, [R9];       | para conseguir dar o dinheiro exato
+    CMP R8, 1;          | irá simplesmente
+    JEQ FimDarDinheiro; | sair do DarDinheiro
+    ; caso contrário
+    ADD R10, 1; R10 é quantidade de produtos. Adiciona 1 (porque antes disto foi subtraido 1, mas como ele abortou devolve o produto para a maquina)
+    MOV [R4], R10; R10 é quantidade de produtos. Adiciona 1 (porque antes disto foi subtraido 1, mas como ele abortou devolve o produto para a maquina)
+    CALL Devolve; devolve as moedas para a maquina (moedas que foram usadas para ver se tinha troco suficiente) e irá setar o 1 para ignorar caso passe denovo no abortar do DarDinheiro para não dar loops infinitos
+    POP R9;                     |
+    POP R8;                     |
+    MOV R6, R8; R8 é o inserido | Vai tentar dar o dinheiro que ele inserio inicialmente
+    PUSH R8;                    |
+    PUSH R9;                    |
+    CALL DarDinheiro;           |
+FimDarDinheiro:
+    POP R9;
+    POP R8;
+    POP R7;
+    POP R5;
+    POP R3;
+    POP R1;
+    POP R0;
+    RET;
+
+;--------------------------
+; Devolve
+;--------------------------
+Devolve:
+    PUSH R0;
+    PUSH R1;
+    PUSH R2;
+    PUSH R3;
+    PUSH R4;
+    PUSH R5;
+    PUSH R6;
+    PUSH R7;
+    MOV R0, 300H; endereço do tracker inicio
+    MOV R1, 30AH; endereço do tracker fim
+    ;R2 quantidade que está no tracker
+    MOV R3, 0F5AH; endereço da quantidade de moedas | da moeda de 10cents 
+    MOV R4, 12; nº bits entre elementos da lista de moedas
+    ;R5 quantidade que está na lista de moedas
+    MOV R6, 30CH; endereço de onde vai tar a dizer q passou aqui (conbater loops infinitos!!!)
+DevolveMoedasCiclo:
+    MOV R2, [R1]; R2 = quantidade de moedas que esta no tracker
+    MOV R5, [R3]; R5 = quantidade de moedas que esta na memória
+    ADD R2, R5; R2 = R2 + R5
+    MOV [R3], R2; coloca no endereço de memória da quantidade de moedas da moeda que está sendo iterada
+    SUB R1, 2; vai para o proximo endereço do tracker
+    ; (aqui subtrai pois no tracker está na ordem 5 euros, 2 euros ... 10cents enquanto que na mémoria é ao contrário,
+    ; por isso no tracker eu comecei no fim do tracker e na memória eu fui apartir do primeiro)
+    ADD R3, R4; vai para o proximo endereço da memoria (endereço=endereço+12)
+    CMP R1, R0; vê se já viu todas as moedas
+    JGE DevolveMoedasCiclo; senão entao volta para o ciclo
+    MOV R7, 1;      | caso contrário termina colocando a 1
+    MOV [R6], R7;   | o endereço referente ao ignorar o abortar (evitar casos específicos)
+    POP R7;
+    POP R6;
+    POP R5;
+    POP R4;
+    POP R3
+    POP R2;
+    POP R1;
+    POP R0;
+    RET;
+
+;--------------------------
+; LimpaMoedasTrocoTracker
+;--------------------------
+LimpaMoedasTrocoTracker:
+    PUSH R0;
+    PUSH R1;
+    PUSH R2;
+    MOV R0, 300H;
+    MOV R1, 30AH;
+    MOV R2, 0;
+CicloLimpaMoedasTracker:
+    MOV [R0], R2; coloca a 0 no endereço R0
+    ADD R0, 2; vai para o proximo endereço
+    CMP R0, R1; vê se já acabou o tracker
+    JLE CicloLimpaMoedasTracker; se não acabou entao volta para o ciclo caso contrário termina
+    POP R2;
+    POP R1;
+    POP R0;
+    RET;
+;-----------------------
+;      Mostra String
+;-----------------------
+MostraString:
+    PUSH R0; R0 = nº de caracteres escritos
+    PUSH R1; R1 = tamanho da string
+    PUSH R2; 
+    PUSH R4; R4 posição da String na memória
+    PUSH R9; R9 posição no display para a qual queremos coloca la
+    MOV R0, 0; 
+    MOV R1, 8;
+CicloMostraString:
+    CMP R0, R1; 
+    JGE FimCicloMostraString; verifica se já foram colocados todos os caracteres
+    MOV R2, [R4 + R0]; R2 = dois caracteres guardados em R4 + R0
+    MOV [R9 + R0], R2; escreve no display esses caracteres 
+    ADD R0, 2;
+    JMP CicloMostraString;
+FimCicloMostraString:
+    POP R9;
+    POP R4;
+    POP R2;
+    POP R1;
+    POP R0;
+    RET;
+
+;------------------------------------------
+; Posição produto na lista bebida/snacks/moedas
+;------------------------------------------
+;R1 lista que queremos aceder
+;R2 opção de pagamento/ opcão de bebida/snack
+;R4 guarda a posição do elemento na lista bebida/snack/moedas
+PosProd_Moeda:
+    PUSH R0;
+    PUSH R1;
+    PUSH R2;
+    PUSH R3;
+    PUSH R5;
+    CMP R1, 1; verifica se queremos verificar a quantidade do produto na lista de bebidas
+    JEQ PosBebida; 
+    CMP R1, 2; verifica se queremos verificar a quantidade do produto na lista de snacks
+    JEQ PosSnack;
+PosMoeda:
+    MOV R2, R3; R2 = opção de pagamento
+    MOV R4, ListaMoedas; 
+    JMP CalculoPos; 
+PosBebida:
+    MOV R4,ListaBebidas;
+    JMP CalculoPos; 
+PosSnack:
+    MOV R4, ListaSnacks;
+CalculoPos:
+    MOV R0, 12; R0 = nº de bytes entre os elementos da lista de bebidas/snacks/moedas
+    MOV R5, R2; R5 = R2, escolha da opção da bebida/snack/pagamento
+    SUB R5, 1; R5 = R5 - 1, posição do elemento nessa lista
+    MUL R0, R5; R0 = R0 * R5, obter nº de bytes a precorrer na lista para chegar no elemento 
+    ADD R4, R0; R4 contem o endereço onde se encontra a bebida/snack/moeda na lista, apontando para o seu nome 
+    POP R5;
+    POP R3;
+    POP R2;
+    POP R1;
+    POP R0;
+    RET; 
+
+;--------------------------
+; Quantidade Produto/Moedas
+;--------------------------
+;R5 guardar quantidade de produto ou moeda
+QtProd_Moeda:
+    PUSH R4; 
+    CALL PosProd_Moeda; R4 = posição do elemento na lista bebida/snack/moedas 
+    MOV R5, 10; R5 = posição a adicionar à posição do elemento na lista para chegar na quantidade
+    ADD R4, R5; R4 = posição contem a quantidade do elemento
+    MOV R5, [R4]; R5 = quantidade do elemento
+    POP R4;
+    RET;
+
+;---------------------
+; Preço Produto/Moedas
+;---------------------
+;R5 guardar o preço do produto ou moeda
+PrecoProd_Moeda:
+    PUSH R4; 
+    CALL PosProd_Moeda; R4 = posição do elemento na lista bebida/snack/moedas 
+    MOV R5, 8; R5 = posição a adicionar à posição do elemento na lista para chegar no preço
+    ADD R4, R5; R4 = posição contem o preço do elemento
+    MOV R5, [R4]; R5 = quantidade do elemento
+    POP R4;
+    RET;
+    
+;------------------------------------------------------------------------------
+;  Colocar * em vez de _ para o utilizador verificar que o caracter foi inserido
+;-----------------------------------------------------------------------------
+AddCaractMenu:
+    PUSH R0;
+    PUSH R2;
+    PUSH R3;
+    PUSH R4;
+    MOV R0, 0; R0 = i 
+    MOV R2, PosCaractWrite; R2 = posição no display onde se encontra o 1º caracter q será escrito
+    MOV R3, R1; R3 = nº de caracters escritos
+    SHL R3, 1; R3 = 2 x R3
+CicloAddC:
+    CMP R0, R3; verificar se ja todos os substitui _ por *, que representam os caracteres inseridos pelo utilizador  
+    JGE FimAddCaract; 
+    MOV R4, CaractWrite; R4 = "*"
+    MOVB [R2], R4; substituição de _ por *
+    ADD R0, 2; R0 = R0 + 2
+    ADD R2, 2; R2 = R2 + 2
+    JMP CicloAddC;
+FimAddCaract:
+    POP R4;
+    POP R3;
+    POP R2;
+    POP R0;
+    RET;
+ 
+;-------------------------------
+; Adiciona inforrmação ao stock
+;-------------------------------
+StockInfo:
+    PUSH R6;
+    PUSH R7;
+    PUSH R8;
+    PUSH R9;
+    PUSH R10;
+    MOV R0, 0; nº de elementos colocados no display
+    MOV R7, 21FH; posição no display onde queremos mostrar o valor
+    MOV R9, 210H; posição inicial no display onde mostraremos o 1º nome
+CicloAddInfo:
+    CMP R1, 3;
+    JLT InfoNaoMoedas; verificar se a lista é a das bebidas ou snacks
+    JGT FimStockInfo; verificar se ja precorreu todas as listas
+    MOV R3, R2;
+InfoNaoMoedas:
+    CALL PosProd_Moeda;
+    MOVB R5, [R4];
+    CMP R5, 0;
+    JEQ ProxLista; verificar se já precorreu toda a lista
+    CALL PosProd_Moeda; 
+    CALL MostraString;
+    CALL MostraQtElemt;
+    MOV R3, 16; nº de bytes a adicionar para ir para a próximo posição
+    ADD R9, R3; R9 = próxima posição do nome do elemento no display
+    ADD R7, R3; R7 = próxima posição do quantidade do elemento no display
+    ADD R0, 1; incremento o nº de elementos no display
+    ADD R2, 1; avança para a proóxima posição
+    CMP R0, 5; 
+    JGE FimStockInfo; verificar se já foram colocados todos os elementos
+    JMP CicloAddInfo;
+ProxLista:
+    ADD R1, 1; avança para a proxima lista
+    MOV R2, 1; volta para o 1º elemento
+    JMP CicloAddInfo;
+FimStockInfo:
+    POP R10;
+    POP R9;
+    POP R8;
+    POP R7;
+    POP R6;
+    RET;
+
+;-------------------------------
+; Mostra Quantidade Elementos
+;------------------------------
+MostraQtElemt:
+    PUSH R0;
+    PUSH R1;
+    PUSH R2;
+    PUSH R3;
+    PUSH R5; 
+    PUSH R7; 
+    CALL QtProd_Moeda; R5 = quantidade do elemento
+    MOV R0, 0; nº de caracteres insridos no display
+    MOV R1, 10; valor a dividir para obter cada número
+    MOV R3, 48; valor a somar para passar para ASCII
+CicloMostraQtElemt:
+    MOV R2, R5; R2 = valor a mostrar
+    DIV R5, R1; R5 = quociente da divisão inteira do valor a mostrar por 10
+    MOD R2, R1; R2 = resto da divisão inteira do valor a mostrar por 10
+    ADD R2, R3; R2 + 48 +, para representar o nº em ASCII
+    MOVB [R7], R2; coloca esse valor no display
+    SUB R7, 1; 
+    ADD R0, 1; incrementa o nº de caracteres inseridos
+    CMP R0, 5; 
+    JGE FimCicloMostraQtElemt; verifica se já foram colocados 5 caracteres
+    JMP CicloMostraQtElemt;
+FimCicloMostraQtElemt:
+    POP R7;
+    POP R5;
+    POP R3;
+    POP R2;
+    POP R1;
+    POP R0;
+    RET;
+
+;---------------------------
+; Nº páginas para o Stock
+;--------------------------
+;R10 guarda o nº de páginas necessário
+NPaginasStock:
+    PUSH R0;
+    PUSH R1;
+    PUSH R2;
+    PUSH R3;
+    PUSH R4;
+    MOV R0, 0; nº de elementos total nas listas 
+    MOV R1, 1; lista que desejamos aceder
+    MOV R2, 1; posição do elemento na lista
+CicloContaElemt:
+    CMP R1, 3;
+    JNE NaoLMoedas; verifica se a lista que acede é a de moedas
+    MOV R3, R2; R3 = posição do elemento na lista moedas
+NaoLMoedas:
+    CALL PosProd_Moeda; R4 posição do elemento na lista
+    MOVB R3, [R4];
+    CMP R3, 0;
+    JNE AddElemt; verifica se já precorreu toda a lista
+    ADD R1, 1; avança para a próxima lista
+    MOV R2, 1; volta para a 1º posição
+    CMP R1, 3; 
+    JGT NPaginas; verifica se já precorremos todas as listas
+    JMP CicloContaElemt;
+AddElemt:
+    ADD R0, 1; incremento o nº de elementos
+    ADD R2, 1; incrementa a posição
+    JMP CicloContaElemt;
+NPaginas:
+    MOV R10, R0;
+    MOV R1, 5; nº de elementos por cada interface
+    DIV R10, R1; R10 = nº de páginas necessárias
+    MOD R0, R1; resto da divisão do nº de páginas por 5
+    CMP R0, 0; 
+    JEQ FimNPaginas; verifica se esse resto é igual a 0
+    ADD R10, 1; incrementa o nº de páginas
+FimNPaginas:
+    POP R4;
+    POP R3;
+    POP R2;
+    POP R1;
+    POP R0;
+    RET;
+
+;---------------------------
+; Mostra página atual Stock
+;------------------------------
+;R6 nº da página atual
+PaginaAtualStock:
+    PUSH R0;
+    PUSH R1;
+    PUSH R2;
+    PUSH R3;
+    PUSH R4;
+    MOV R0, R6; R0 = nº da página atual
+    MOV R1, 48; R1 = valor a somar para passar um número para notação ASCII
+    ADD R0, R1;
+    MOV R2, 209H; posição para a qual queremos colocar o nº de página no display
+    MOVB [R2], R0; coloca o nº de página no display
+    ADD R2, 3; posição onde colocaremos o nº máximo de páginas no display
+    MOV R0, R10; R0 = nº máximo de páginas do stock
+CicloPagTotal:
+    MOV R4, R0; R4 = valor a mostrar
+    MOV R3, 10; valor a dividir para obter cada número 
+    DIV R0, R3; R0 = quociente da divisão inteira do valor a mostrar por 10
+    MOD R4, R3; R4 = resto da divisão inteira do valor a mostrar por 10
+    ADD R4, R1; R4 + 48 +, para representar o nº em ASCII
+    MOVB [R2], R4; coloca esse valor no display
+    CMP R0, 0;
+    JEQ FimPagAtual; se o quociente der 0 não representa
+    SUB R2, 1; posição a colocar o nº máximo de paginas - 1, para representar a casa decimal
+    JMP CicloPagTotal;
+FimPagAtual:
+    POP R4;
+    POP R3;
+    POP R2;
+    POP R1;
+    POP R0;
+    RET;
